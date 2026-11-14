@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>RO風 2.5D</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <button id="photo-btn">フォトモード: OFF</button>
+
+  <!-- ロングウォール上面クリック時に開くミニウィンドウ -->
+  <div id="wall-modal" class="hidden">
+    <div id="wall-modal-header">
+      <span id="wall-modal-title">オブジェクト情報</span>
+      <button id="wall-modal-close">×</button>
+    </div>
+    <div id="wall-modal-body"></div>
+  </div>
+
+  <div id="chat-container">
+    <div id="chat-log"></div>
+    <div id="chat">
+      <input id="in" placeholder="発言 /lv /! /?" maxlength="30">
+      <button id="btn">発言</button>
+      <button id="save-btn" title="チャットログをテキスト保存">保存</button>
+    </div>
+  </div>
+
+  <canvas id="c"></canvas>
+
+  <script src="core.js"></script>
+  <script src="map.js"></script>
+  <script src="sound.js"></script>
+  <script src="player.js"></script>
+  <script src="texture.js"></script>
+  <script src="obstacle.js"></script>
+  <script src="longwall.js"></script>
+  <script src="mob.js"></script>
+  <script src="stage_config.js"></script>
+  <script src="minimap.js"></script>
+  <script src="ui.js"></script>
+  <script src="input.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
