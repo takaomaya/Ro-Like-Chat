@@ -41,12 +41,15 @@ canvas { display: block; touch-action: none; }
 .emo-item:active { transform: scale(0.95); }
 #wall-modal {
   position: absolute; top: 120px; left: 50%; width: 230px;
+  max-height: 66.67vh; max-height: 66.67dvh;
+  display: flex; flex-direction: column;
   background: rgba(245, 248, 255, 0.96); border: 1px solid #4a6b94;
   border-radius: 4px; box-shadow: 0 4px 12px rgba(0,0,0,0.45);
   font-size: 12px; color: #222; z-index: 10;
 }
 #wall-modal-header {
   display: flex; justify-content: space-between; align-items: center;
+  flex-shrink: 0;
   background: linear-gradient(180deg, #4b83c3 0%, #336299 100%);
   color: #fff; padding: 5px 8px; font-weight: bold;
   border-radius: 3px 3px 0 0; cursor: grab;
@@ -55,8 +58,10 @@ canvas { display: block; touch-action: none; }
 #wall-modal-close {
   background: none; border: none; color: #fff; font-size: 14px; cursor: pointer; padding: 0 4px;
 }
-#wall-modal-body { padding: 10px 12px; line-height: 1.5; user-select: text; }
-
+#wall-modal-body {
+  padding: 10px 12px; line-height: 1.5; user-select: text;
+  overflow-y: auto; flex: 1;
+}
 #chat-container {
   position: absolute; bottom: 12px; left: 12px;
   width: 340px; display: flex; flex-direction: column; gap: 4px;

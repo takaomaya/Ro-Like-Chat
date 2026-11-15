@@ -166,16 +166,24 @@ function sendChat() {
 btn.onclick = sendChat;
 
 // ==========================================
-// ロングウォール上面クリック時のミニウィンドウ制御（トグル開閉＋確実なドラッグ移動）
+// ロングウォール上面クリック時のミニウィンドウ制御（トグル開閉＋中央配置＋ドラッグ移動）
 // ==========================================
 var wallModal = document.getElementById('wall-modal');
 var wallModalHeader = document.getElementById('wall-modal-header');
 var wallModalTitle = document.getElementById('wall-modal-title');
 var wallModalBody = document.getElementById('wall-modal-body');
 var wallModalClose = document.getElementById('wall-modal-close');
-var isModalCentered = false;
+var isModalMovedByUser = false; // ユーザーがドラッグ移動したかどうかのフラグ
 var currentModalKey = null;
 var lastModalToggleTime = 0;
+
+function centerWallModal() {
+  if (!wallModal) return;
+  var left = Math.max(12, (window.innerWidth - wallModal.offsetWidth) / 2);
+  var top = Math.max(12, (window.innerHeight - wallModal.offsetHeight) / 2);
+  wallModal.style.left = left + 'px';
+  wallModal.style.top = top + 'px';
+}
 
 function openWallModal(wall) {
   if (!wallModal || !wall) return;
@@ -205,11 +213,13 @@ function openWallModal(wall) {
       'サイズ: ' + wall.w + ' × ' + wall.d + ' マス';
   }
 
+  // スクロール位置を一番上に戻して表示
+  if (wallModalBody) wallModalBody.scrollTop = 0;
   wallModal.classList.remove('hidden');
 
-  if (!isModalCentered) {
-    wallModal.style.left = Math.max(12, (window.innerWidth - wallModal.offsetWidth) / 2) + 'px';
-    isModalCentered = true;
+  // ユーザーが手動で動かしていなければ、コンテンツ描画後の高さを含めて画面のど真ん中に配置
+  if (!isModalMovedByUser) {
+    centerWallModal();
   }
 }
 
@@ -225,6 +235,12 @@ if (wallModalClose) {
   };
 }
 
+// ダイアログ本文のスクロール操作が背後のマップに伝わらないようにする
+if (wallModalBody) {
+  wallModalBody.addEventListener('wheel', function(e) { e.stopPropagation(); });
+  wallModalBody.addEventListener('pointerdown', function(e) { e.stopPropagation(); });
+}
+
 if (wallModalHeader && wallModal) {
   wallModalHeader.style.touchAction = 'none';
   var isModalDragging = false;
@@ -236,6 +252,7 @@ if (wallModalHeader && wallModal) {
     e.preventDefault();
     e.stopPropagation();
     isModalDragging = true;
+    isModalMovedByUser = true;
     var rect = wallModal.getBoundingClientRect();
     modalOffsetX = e.clientX - rect.left;
     modalOffsetY = e.clientY - rect.top;
