@@ -9,23 +9,17 @@ var pinchStartSize = 48;
 var prevPinchMidX = 0;
 var prevPinchMidY = 0;
 
-// ポリン長押し追尾用タイマー・座標管理
-var longPressTimer = null;
-var pressStartX = 0;
-var pressStartY = 0;
-
-function clearLongPress() {
-  if (longPressTimer) {
-    clearTimeout(longPressTimer);
-    longPressTimer = null;
-  }
-}
+// ポリン ダブルクリック（ダブルタップ）追尾用管理変数
+var lastTapTime = 0;
+var lastTapMob = null;
+var lastTapX = 0;
+var lastTapY = 0;
 
 // 指定したスクリーン座標付近にいるポリン（Mob）を探す共通関数
 function findMobAtScreen(sx, sy) {
   return Array.from(mobs.items.values()).find(function(m) {
     var s = toS(m.x, m.y);
-    return Math.hypot(sx - s.x, sy - (s.y - 10)) < 28;
+    return Math.hypot(sx - s.x, sy - (s.y - 10)) < 30;
   });
 }
 
@@ -42,10 +36,9 @@ window.addEventListener('keyup', function(e) {
 window.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
 // ==========================================
-// 1. ポインター操作（PCマウス ＋ スマホ1本指タップ移動・長押し追尾）
+// 1. ポインター操作（PCマウス ＋ スマホ1本指タップ移動・ダブルタップ追尾）
 // ==========================================
 c.onpointerdown = function(e) {
-  clearLongPress();
   if (isPinching) return;
   inp.blur();
 
@@ -54,8 +47,8 @@ c.onpointerdown = function(e) {
     p.mTime = 0;
   }
 
-  lastMouseX = prevX = pressStartX = e.clientX;
-  lastMouseY = prevY = pressStartY = e.clientY;
+  lastMouseX = prevX = e.clientX;
+  lastMouseY = prevY = e.clientY;
 
   if (e.button === 0) {
     // 1. ミニマップ上のクリック判定
@@ -63,6 +56,7 @@ c.onpointerdown = function(e) {
     if (miniPos) {
       isMinimapDrag = true;
       p.followMob = null;
+      lastTapMob = null;
       p.tx = miniPos.x; p.ty = miniPos.y;
       return;
     }
@@ -72,30 +66,36 @@ c.onpointerdown = function(e) {
       return typeof o.isTopClicked === 'function' && o.isTopClicked(e.clientX, e.clientY);
     });
     if (clickedWall) {
+      lastTapMob = null;
       openWallModal(clickedWall);
       return;
     }
 
-    // 3. Shift + 左クリックでポリン追尾（即時）
+    // 3. Shift + 左クリックでポリン追尾（PC用ショートカット維持）
     if (e.shiftKey) {
-      var hit = findMobAtScreen(e.clientX, e.clientY);
-      if (hit) { p.followMob = hit; return; }
+      var hitShift = findMobAtScreen(e.clientX, e.clientY);
+      if (hitShift) { p.followMob = hitShift; return; }
     }
 
-    // 4. ポリン上での長押し（0.45秒）判定をセット
-    var targetMob = findMobAtScreen(e.clientX, e.clientY);
-    if (targetMob) {
-      longPressTimer = setTimeout(function() {
-        if (isLeftDown && !isPinching) {
-          p.followMob = targetMob;
-          isLeftDown = false; // 長押し成立後はドラッグ移動を解除して追尾に切り替える
-          if (typeof addChatLog === 'function') {
-            addChatLog('【システム】' + targetMob.name + ' の追尾を開始しました。', 'sys');
-          }
-        }
-        longPressTimer = null;
-      }, 450);
+    // 4. ポリンのダブルクリック（ダブルタップ）判定
+    var now = Date.now();
+    var hitMob = findMobAtScreen(e.clientX, e.clientY);
+    if (hitMob && hitMob === lastTapMob && (now - lastTapTime) < 350 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 36) {
+      p.followMob = hitMob;
+      isLeftDown = false;
+      lastTapTime = 0;
+      lastTapMob = null;
+      if (typeof addChatLog === 'function') {
+        addChatLog('【システム】' + hitMob.name + ' の追尾を開始しました。', 'sys');
+      }
+      return;
     }
+
+    // 1回目のタップ情報を記録
+    lastTapTime = now;
+    lastTapMob = hitMob || null;
+    lastTapX = e.clientX;
+    lastTapY = e.clientY;
 
     // 5. 通常の左クリック（移動開始）
     isLeftDown = true;
@@ -109,17 +109,9 @@ c.onpointerdown = function(e) {
 };
 
 c.onpointermove = function(e) {
-  if (isPinching) {
-    clearLongPress();
-    return;
-  }
+  if (isPinching) return;
   lastMouseX = e.clientX;
   lastMouseY = e.clientY;
-
-  // 押し始めから一定以上（12px）指・マウスが動いたら長押し判定をキャンセル
-  if (longPressTimer && Math.hypot(e.clientX - pressStartX, e.clientY - pressStartY) > 12) {
-    clearLongPress();
-  }
 
   if (isMinimapDrag) {
     var miniPos = screenToMinimapWorld(e.clientX, e.clientY);
@@ -135,13 +127,11 @@ c.onpointermove = function(e) {
 };
 
 c.onpointerup = function(e) {
-  clearLongPress();
   if (e.button === 0) { isLeftDown = false; isMinimapDrag = false; }
   if (e.button === 2) { isRightDown = false; }
 };
 
 c.onpointercancel = function() {
-  clearLongPress();
   isLeftDown = false;
   isRightDown = false;
   isMinimapDrag = false;
@@ -156,10 +146,10 @@ window.addEventListener('wheel', function(e) {
 // ==========================================
 c.addEventListener('touchstart', function(e) {
   if (e.touches.length === 2) {
-    clearLongPress();
     isPinching = true;
     isLeftDown = false;
     isMinimapDrag = false;
+    lastTapMob = null;
 
     var t0 = e.touches.item(0);
     var t1 = e.touches.item(1);
