@@ -91,7 +91,6 @@ var hasFullscreenSupport = !!(fsBtn && document.documentElement.requestFullscree
 if (fsBtn) {
   if (!hasFullscreenSupport) {
     fsBtn.style.display = 'none';
-    // 全画面ボタンがない環境ではエモーションボタンの位置を上に詰める
     if (emoBtn) emoBtn.style.top = '48px';
     if (emoPanel) emoPanel.style.top = '88px';
   }
@@ -167,7 +166,7 @@ function sendChat() {
 btn.onclick = sendChat;
 
 // ==========================================
-// ロングウォール上面クリック時のミニウィンドウ制御
+// ロングウォール上面クリック時のミニウィンドウ制御（トグル開閉＋ドラッグ移動）
 // ==========================================
 var wallModal = document.getElementById('wall-modal');
 var wallModalHeader = document.getElementById('wall-modal-header');
@@ -175,41 +174,18 @@ var wallModalTitle = document.getElementById('wall-modal-title');
 var wallModalBody = document.getElementById('wall-modal-body');
 var wallModalClose = document.getElementById('wall-modal-close');
 var isModalCentered = false;
-
-// ==========================================
-// ロングウォール上面クリック時のミニウィンドウ制御
-// ==========================================
-var wallModal = document.getElementById('wall-modal');
-var wallModalHeader = document.getElementById('wall-modal-header');
-var wallModalTitle = document.getElementById('wall-modal-title');
-var wallModalBody = document.getElementById('wall-modal-body');
-var wallModalClose = document.getElementById('wall-modal-close');
-var isModalCentered = false;
-var currentModalWall = null; // 現在開いているウォールを記憶する変数
-
-// ==========================================
-// ロングウォール上面クリック時のミニウィンドウ制御
-// ==========================================
-var wallModal = document.getElementById('wall-modal');
-var wallModalHeader = document.getElementById('wall-modal-header');
-var wallModalTitle = document.getElementById('wall-modal-title');
-var wallModalBody = document.getElementById('wall-modal-body');
-var wallModalClose = document.getElementById('wall-modal-close');
-var isModalCentered = false;
-var currentModalKey = null; // 開いているウォールのID（key）を記憶
+var currentModalKey = null;
 var lastModalToggleTime = 0;
 
 function openWallModal(wall) {
   if (!wallModal || !wall) return;
 
-  // 短時間（200ms以内）の二重クリック・二重発火を防止
   var now = Date.now();
   if (now - lastModalToggleTime < 200) return;
   lastModalToggleTime = now;
 
   var isVisible = !wallModal.classList.contains('hidden');
 
-  // すでに同じIDのウォールが開いている場合は閉じる
   if (isVisible && currentModalKey === wall.key) {
     closeWallModal();
     return;
@@ -240,4 +216,48 @@ function openWallModal(wall) {
 function closeWallModal() {
   if (wallModal) wallModal.classList.add('hidden');
   currentModalKey = null;
+}
+
+if (wallModalClose) {
+  wallModalClose.onclick = closeWallModal;
+}
+
+if (wallModalHeader && wallModal) {
+  wallModalHeader.style.touchAction = 'none'; // スマホでのドラッグ時に画面スクロールを防止
+  var isModalDragging = false;
+  var modalOffsetX = 0;
+  var modalOffsetY = 0;
+
+  wallModalHeader.onpointerdown = function(e) {
+    if (e.target === wallModalClose) return;
+    isModalDragging = true;
+    var rect = wallModal.getBoundingClientRect();
+    modalOffsetX = e.clientX - rect.left;
+    modalOffsetY = e.clientY - rect.top;
+    wallModalHeader.setPointerCapture(e.pointerId);
+  };
+
+  wallModalHeader.onpointermove = function(e) {
+    if (!isModalDragging) return;
+    var maxX = window.innerWidth - wallModal.offsetWidth;
+    var maxY = window.innerHeight - wallModal.offsetHeight;
+    var nextX = Math.max(0, Math.min(maxX, e.clientX - modalOffsetX));
+    var nextY = Math.max(0, Math.min(maxY, e.clientY - modalOffsetY));
+    wallModal.style.left = nextX + 'px';
+    wallModal.style.top = nextY + 'px';
+  };
+
+  wallModalHeader.onpointerup = function(e) {
+    if (isModalDragging) {
+      isModalDragging = false;
+      wallModalHeader.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  wallModalHeader.onpointercancel = function(e) {
+    if (isModalDragging) {
+      isModalDragging = false;
+      wallModalHeader.releasePointerCapture(e.pointerId);
+    }
+  };
 }
