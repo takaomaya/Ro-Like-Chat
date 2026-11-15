@@ -100,7 +100,6 @@ class Mob {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // 1. 名前はフォトモードOFFのときだけ表示
     if (!isPhotoMode) {
       ctx.font = 'bold 11px sans-serif';
       var nameY = s.y - 56 * sc;
@@ -108,7 +107,6 @@ class Mob {
       ctx.fillStyle = (p.followMob === this) ? '#80f0ff' : '#ffd1e3'; ctx.fillText(this.name, s.x, nameY);
     }
 
-    // 2. チャット吹き出し（発言）はフォトモード中でも表示
     if (this.mTime > 0) {
       ctx.font = 'bold 12px sans-serif';
       var w = ctx.measureText(this.msg).width + 14;
@@ -120,7 +118,6 @@ class Mob {
     }
     ctx.restore();
 
-    // 3. エモーション表示
     if (this.eTime > 0) {
       var emoY = s.y - (isPhotoMode ? 64 : 82) * sc - (this.mTime > 0 ? 30 : 0);
       drawEmotionBubble(s.x, emoY, this.emoData, this.eTime);

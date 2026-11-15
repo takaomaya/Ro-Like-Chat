@@ -1,6 +1,6 @@
 // ミニマップの位置と縮尺を計算して返す関数（描画とクリック判定で共通利用）
 function getMinimapBounds() {
-  var maxSize = 140;
+  var maxSize = window.innerWidth <= 600 ? Math.min(130, window.innerWidth * 0.32) : 140;
   var scale = maxSize / Math.max(gameMap.width, gameMap.height);
   var w = gameMap.width * scale;
   var h = gameMap.height * scale;

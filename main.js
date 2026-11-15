@@ -38,7 +38,6 @@ function updatePlayer() {
   gameMap.clampEntity(p);
   p.vx *= 0.85; p.vy *= 0.85;
 
-  // 固定表示中でない場合のみ表示タイマーを減らす
   if (!p.isMsgPinned && p.mTime > 0) p.mTime--;
   if (p.eTime > 0) p.eTime--;
 }

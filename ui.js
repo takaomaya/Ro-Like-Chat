@@ -98,7 +98,7 @@ function sendChat() {
 btn.onclick = sendChat;
 
 // ==========================================
-// ロングウォール上面クリック時のミニウィンドウ制御（ドラッグ移動対応）
+// ロングウォール上面クリック時のミニウィンドウ制御
 // ==========================================
 var wallModal = document.getElementById('wall-modal');
 var wallModalHeader = document.getElementById('wall-modal-header');
@@ -124,7 +124,6 @@ function openWallModal(wall) {
 
   wallModal.classList.remove('hidden');
 
-  // 初回表示時のみ画面の水平中央に配置（2回目以降は動かした位置を維持）
   if (!isModalCentered) {
     wallModal.style.left = Math.max(12, (window.innerWidth - wallModal.offsetWidth) / 2) + 'px';
     isModalCentered = true;
@@ -139,14 +138,12 @@ if (wallModalClose) {
   wallModalClose.onclick = closeWallModal;
 }
 
-// ヘッダー部分のドラッグ移動処理
 if (wallModalHeader && wallModal) {
   var isModalDragging = false;
   var modalOffsetX = 0;
   var modalOffsetY = 0;
 
   wallModalHeader.onpointerdown = function(e) {
-    // 閉じるボタン(×)を押したときはドラッグ開始しない
     if (e.target === wallModalClose) return;
     isModalDragging = true;
     var rect = wallModal.getBoundingClientRect();

@@ -49,6 +49,11 @@ obstacleのテクスチャサイズ
 ・障害物を避けて自動で迂回する経路探索（A*アルゴリズム）
 ・obstacleに再配置できるオブジェクトとしてtree(平面で当たり判定なく画像1枚を建てるやつ)とNotice(Treeと基本同じで文章が貼れる看板)を追加する
 
+
+https://takaomaya.github.io/Ro-Like-Chat/
+
+
+
 新しい障害物の増やし方
 
 ・ ブースの追加：obstacles.addLongWall(14.5, 10.5, 'wall_top.png', 'wall_front.png', 'wall_back.png', 'board.png', 1);
