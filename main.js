@@ -1,14 +1,29 @@
+function updateCameraByKeys() {
+  // 1. 水平回転（A: 左回転 / D: 右回転）
+  if (keys.has('a')) cam.ang -= 0.03;
+  if (keys.has('d')) cam.ang += 0.03;
+
+  // 2. 見下ろし角度・縦回転（W: 角度を深く・上から見下ろす / S: 角度を浅く・水平に近づける）
+  if (keys.has('w')) cam.pitch = Math.min(0.95, cam.pitch + 0.015);
+  if (keys.has('s')) cam.pitch = Math.max(0.25, cam.pitch - 0.015);
+
+  // 3. ズーム（Z: ズームイン・拡大 / X: ズームアウト・縮小）
+  if (keys.has('z')) cam.size = Math.min(96, cam.size + 1.2);
+  if (keys.has('x')) cam.size = Math.max(24, cam.size - 1.2);
+}
+
 function updatePlayer() {
   if (isLeftDown && !isMinimapDrag) {
     var mw = toW(lastMouseX, lastMouseY);
     if (gameMap.isInside(mw.x, mw.y)) { p.tx = mw.x; p.ty = mw.y; }
   }
 
+  // プレイヤー移動は矢印キー（↑↓←→）で操作（WASDはカメラ操作へ割り当て）
   var kx = 0, ky = 0;
-  if (keys.has('arrowup') || keys.has('w')) ky -= 1;
-  if (keys.has('arrowdown') || keys.has('s')) ky += 1;
-  if (keys.has('arrowleft') || keys.has('a')) kx -= 1;
-  if (keys.has('arrowright') || keys.has('d')) kx += 1;
+  if (keys.has('arrowup')) ky -= 1;
+  if (keys.has('arrowdown')) ky += 1;
+  if (keys.has('arrowleft')) kx -= 1;
+  if (keys.has('arrowright')) kx += 1;
 
   if (kx !== 0 || ky !== 0) {
     p.followMob = null;
@@ -67,6 +82,7 @@ function drawAll() {
 }
 
 function loop() {
+  updateCameraByKeys();
   updatePlayer();
   mobs.updateAll();
   obstacles.items.forEach(function(o) {

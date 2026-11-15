@@ -2,6 +2,7 @@ var inp = document.getElementById('in');
 var btn = document.getElementById('btn');
 var saveBtn = document.getElementById('save-btn');
 var photoBtn = document.getElementById('photo-btn');
+var fsBtn = document.getElementById('fullscreen-btn');
 var chatContainer = document.getElementById('chat-container');
 var chatLog = document.getElementById('chat-log');
 
@@ -67,8 +68,36 @@ photoBtn.onclick = function() {
   photoBtn.textContent = isPhotoMode ? 'フォトモード: ON' : 'フォトモード: OFF';
   photoBtn.classList.toggle('active', isPhotoMode);
   chatContainer.style.display = isPhotoMode ? 'none' : 'flex';
+  if (fsBtn && document.documentElement.requestFullscreen) {
+    fsBtn.style.display = isPhotoMode ? 'none' : 'block';
+  }
   photoBtn.blur();
 };
+
+// ==========================================
+// 全画面（フルスクリーン）表示の切り替え制御
+// ==========================================
+if (fsBtn) {
+  // 全画面APIに非対応のブラウザ（iPhone Safariなど）ではボタンを非表示にする
+  if (!document.documentElement.requestFullscreen) {
+    fsBtn.style.display = 'none';
+  }
+
+  fsBtn.onclick = function() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(function() {});
+    } else {
+      document.exitFullscreen();
+    }
+    fsBtn.blur();
+  };
+
+  document.addEventListener('fullscreenchange', function() {
+    var isFs = !!document.fullscreenElement;
+    fsBtn.textContent = isFs ? '全画面解除' : '全画面';
+    fsBtn.classList.toggle('active', isFs);
+  });
+}
 
 function setEmo(k) {
   p.emotion(k);
