@@ -51,12 +51,14 @@ input { flex: 1; padding: 5px 8px; border-radius: 3px; border: 1px solid #555; m
 /* =========================================================
    スマホ縦画面専用（横画面には一切影響しません）
    ========================================================= */
-@media (orientation: portrait) {
+/* スマホ縦画面専用（画面幅600px以下のとき確実に適用） */
+@media (max-width: 600px) {
   #photo-btn {
-    padding: 18px 28px;
-    font-size: 24px;
-    border-radius: 6px;
+    padding: 8px 14px;
+    font-size: 14px;
+    border-radius: 4px;
   }
+
   /* チャット機能のUIを画面下の横いっぱいに広げる */
   #chat-container {
     left: 0;
