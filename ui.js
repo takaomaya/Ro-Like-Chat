@@ -176,8 +176,27 @@ var wallModalBody = document.getElementById('wall-modal-body');
 var wallModalClose = document.getElementById('wall-modal-close');
 var isModalCentered = false;
 
+// ==========================================
+// ロングウォール上面クリック時のミニウィンドウ制御
+// ==========================================
+var wallModal = document.getElementById('wall-modal');
+var wallModalHeader = document.getElementById('wall-modal-header');
+var wallModalTitle = document.getElementById('wall-modal-title');
+var wallModalBody = document.getElementById('wall-modal-body');
+var wallModalClose = document.getElementById('wall-modal-close');
+var isModalCentered = false;
+var currentModalWall = null; // 現在開いているウォールを記憶する変数
+
 function openWallModal(wall) {
   if (!wallModal) return;
+
+  // すでにこのウォールのダイアログが開いている場合は閉じる
+  if (!wallModal.classList.contains('hidden') && currentModalWall === wall) {
+    closeWallModal();
+    return;
+  }
+
+  currentModalWall = wall;
 
   if (wall.modalTitle !== null || wall.modalHtml !== null) {
     wallModalTitle.textContent = wall.modalTitle || ('ID: ' + wall.key);
@@ -201,40 +220,5 @@ function openWallModal(wall) {
 
 function closeWallModal() {
   if (wallModal) wallModal.classList.add('hidden');
-}
-
-if (wallModalClose) {
-  wallModalClose.onclick = closeWallModal;
-}
-
-if (wallModalHeader && wallModal) {
-  var isModalDragging = false;
-  var modalOffsetX = 0;
-  var modalOffsetY = 0;
-
-  wallModalHeader.onpointerdown = function(e) {
-    if (e.target === wallModalClose) return;
-    isModalDragging = true;
-    var rect = wallModal.getBoundingClientRect();
-    modalOffsetX = e.clientX - rect.left;
-    modalOffsetY = e.clientY - rect.top;
-    wallModalHeader.setPointerCapture(e.pointerId);
-  };
-
-  wallModalHeader.onpointermove = function(e) {
-    if (!isModalDragging) return;
-    var maxX = window.innerWidth - wallModal.offsetWidth;
-    var maxY = window.innerHeight - wallModal.offsetHeight;
-    var nextX = Math.max(0, Math.min(maxX, e.clientX - modalOffsetX));
-    var nextY = Math.max(0, Math.min(maxY, e.clientY - modalOffsetY));
-    wallModal.style.left = nextX + 'px';
-    wallModal.style.top = nextY + 'px';
-  };
-
-  wallModalHeader.onpointerup = function(e) {
-    if (isModalDragging) {
-      isModalDragging = false;
-      wallModalHeader.releasePointerCapture(e.pointerId);
-    }
-  };
+  currentModalWall = null; // 閉じたときに記憶をリセット
 }
