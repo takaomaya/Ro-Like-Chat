@@ -185,44 +185,46 @@ function centerWallModal() {
   wallModal.style.top = top + 'px';
 }
 
-function openWallModal(wall) {
-  if (!wallModal || !wall) return;
+function openWallModal(target) {
+  if (!wallModal || !target) return;
 
   var now = Date.now();
-  if (now - lastModalToggleTime < 200) return;
+  if (now - lastModalToggleTime < 150) return;
   lastModalToggleTime = now;
 
   var isVisible = !wallModal.classList.contains('hidden');
 
-  if (isVisible && currentModalKey === wall.key) {
+  if (isVisible && currentModalKey === target.key) {
     closeWallModal();
     return;
   }
 
-  currentModalKey = wall.key;
+  currentModalKey = target.key;
 
-  if (wall.modalTitle !== null || wall.modalHtml !== null) {
-    wallModalTitle.textContent = wall.modalTitle || ('ID: ' + wall.key);
-    wallModalBody.innerHTML = wall.modalHtml || '';
+  if (target.modalTitle !== null || target.modalHtml !== null) {
+    wallModalTitle.textContent = target.modalTitle || target.name || ('ID: ' + target.key);
+    wallModalBody.innerHTML = target.modalHtml || '';
+  } else if (target instanceof Mob) {
+    wallModalTitle.textContent = target.name;
+    wallModalBody.innerHTML =
+      '種族: ポリン<br>' +
+      '現在地: (' + target.x.toFixed(1) + ', ' + target.y.toFixed(1) + ')';
   } else {
     var dirNames = ['北向き (0)', '東向き (1)', '南向き (2)', '西向き (3)'];
-    wallModalTitle.textContent = 'ID: ' + wall.key;
+    wallModalTitle.textContent = 'ID: ' + target.key;
     wallModalBody.innerHTML =
-      '中心座標: (' + wall.x + ', ' + wall.y + ')<br>' +
-      '向き: ' + dirNames.at(wall.dir) + '<br>' +
-      'サイズ: ' + wall.w + ' × ' + wall.d + ' マス';
+      '中心座標: (' + target.x + ', ' + target.y + ')<br>' +
+      '向き: ' + dirNames.at(target.dir) + '<br>' +
+      'サイズ: ' + target.w + ' × ' + target.d + ' マス';
   }
 
-  // スクロール位置を一番上に戻して表示
   if (wallModalBody) wallModalBody.scrollTop = 0;
   wallModal.classList.remove('hidden');
 
-  // ユーザーが手動で動かしていなければ、コンテンツ描画後の高さを含めて画面のど真ん中に配置
   if (!isModalMovedByUser) {
     centerWallModal();
   }
 }
-
 function closeWallModal() {
   if (wallModal) wallModal.classList.add('hidden');
   currentModalKey = null;

@@ -24,6 +24,14 @@ class Mob {
     this.mTime = 0;
     this.emoData = null;
     this.eTime = 0;
+    this.modalTitle = null;
+    this.modalHtml = null;
+  }
+
+  setModalContent(title, htmlContent) {
+    this.modalTitle = title;
+    this.modalHtml = htmlContent;
+    return this;
   }
 
   say(text, duration) {

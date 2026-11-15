@@ -36,7 +36,7 @@ window.addEventListener('keyup', function(e) {
 window.addEventListener('contextmenu', function(e) { e.preventDefault(); });
 
 // ==========================================
-// 1. ポインター操作（PCマウス ＋ スマホ1本指タップ移動・ダブルタップ追尾）
+// 1. ポインター操作（PCマウス ＋ スマホ1本指タップ移動・ポリンダイアログ・ダブルタップ追尾）
 // ==========================================
 c.onpointerdown = function(e) {
   if (isPinching) return;
@@ -77,27 +77,34 @@ c.onpointerdown = function(e) {
       if (hitShift) { p.followMob = hitShift; return; }
     }
 
-    // 4. ポリンのダブルクリック（ダブルタップ）判定
+    // 4. ポリンのクリック判定（1回クリックでダイアログ開閉 / ダブルクリックで追尾）
     var now = Date.now();
     var hitMob = findMobAtScreen(e.clientX, e.clientY);
-    if (hitMob && hitMob === lastTapMob && (now - lastTapTime) < 350 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 36) {
-      p.followMob = hitMob;
-      isLeftDown = false;
-      lastTapTime = 0;
-      lastTapMob = null;
-      if (typeof addChatLog === 'function') {
-        addChatLog('【システム】' + hitMob.name + ' の追尾を開始しました。', 'sys');
+    if (hitMob) {
+      // ダブルクリック（ダブルタップ）なら追尾開始
+      if (hitMob === lastTapMob && (now - lastTapTime) < 350 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 36) {
+        p.followMob = hitMob;
+        isLeftDown = false;
+        lastTapTime = 0;
+        lastTapMob = null;
+        if (typeof closeWallModal === 'function') closeWallModal();
+        if (typeof addChatLog === 'function') {
+          addChatLog('【システム】' + hitMob.name + ' の追尾を開始しました。', 'sys');
+        }
+        return;
       }
+
+      // 1回目のクリック記録とダイアログ表示
+      lastTapTime = now;
+      lastTapMob = hitMob;
+      lastTapX = e.clientX;
+      lastTapY = e.clientY;
+      openWallModal(hitMob);
       return;
     }
 
-    // 1回目のタップ情報を記録
-    lastTapTime = now;
-    lastTapMob = hitMob || null;
-    lastTapX = e.clientX;
-    lastTapY = e.clientY;
-
     // 5. 通常の左クリック（移動開始）
+    lastTapMob = null;
     isLeftDown = true;
     p.followMob = null;
     var w = toW(e.clientX, e.clientY);

@@ -28,17 +28,37 @@ obstacles.add('box_1', 11.0, 15.0, 1, 1, 'red.png');
 
 
 // 4. ポリン（NPC/モブ）の配置（削除時のキーとなる任意のキー, x, y, 待機時間, image/内の画像名, 名前）
+// 4. ポリン（NPC/モブ）の配置（第1引数にnullを渡すとポリンの名前が自動でタイトルになります）
 mobs.clear();
-mobs.add('poring_1', 3, 3, 10, 'player.png', 'みかん');
-mobs.add('poring_2', 12, 4, 30, 'player.png', 'さらみ');
-mobs.add('poring_3', 4, 12, 50, 'player.png', 'グングニル');
-mobs.add('poring_4', 11, 11, 70, 'player.png', 'ちくわ');
-mobs.add('poring_5', 8, 2, 90, 'player.png', 'ぽち');
-mobs.add('poring_6', 8, 2, 90, 'player.png', 'たま');
-mobs.add('poring_7', 8, 2, 90, 'player.png', 'かまぼこ');
-mobs.add('poring_8', 8, 2, 90, 'player.png', 'さくら');
-mobs.add('poring_9', 8, 2, 90, 'player.png', 'あつあげ');
-mobs.add('poring_A', 13, 8, 110, 'player.png', 'ぽりたん');
+mobs.add('poring_1', 3, 3, 10, 'player.png', 'みかん')
+    .setModalContent(null, 'ぷるぷる！一番元気なポリン。<br><b>好きなもの：</b>甘いリンゴ<br><button onclick="mobs.emotion(\'poring_1\', \'3\'); mobs.say(\'poring_1\', \'わーい！\', 180);">なでる</button>');
+
+mobs.add('poring_2', 12, 4, 30, 'player.png', 'さらみ')
+    .setModalContent(null, 'ちょっとおっとりした性格。<br>よく昼寝をしています。<br><button onclick="mobs.emotion(\'poring_2\', \'8\');">そっとしておく</button>');
+
+mobs.add('poring_3', 4, 12, 50, 'player.png', 'グングニル')
+    .setModalContent(null, '名前だけはとっても強そう！<br>でも中身は普通のポリンです。');
+
+mobs.add('poring_4', 11, 11, 70, 'player.png', 'ちくわ')
+    .setModalContent(null, '真ん中に穴は開いていません。<br>広場の中央付近がお気に入り。');
+
+mobs.add('poring_5', 8, 2, 90, 'player.png', 'ぽち')
+    .setModalContent(null, 'ワン！……ではなく「ぷるっ」と鳴きます。');
+
+mobs.add('poring_6', 8, 2, 90, 'player.png', 'たま')
+    .setModalContent(null, '丸くてつやつやしたボディが自慢！');
+
+mobs.add('poring_7', 8, 2, 90, 'player.png', 'かまぼこ')
+    .setModalContent(null, 'きれいなピンク色をしたポリンです。');
+
+mobs.add('poring_8', 8, 2, 90, 'player.png', 'さくら')
+    .setModalContent(null, '春が大好き！<br><button onclick="mobs.emotion(\'poring_8\', \'9\');">一緒に歌う</button>');
+
+mobs.add('poring_9', 8, 2, 90, 'player.png', 'あつあげ')
+    .setModalContent(null, 'ぽかぽか日向ぼっこ中。');
+
+mobs.add('poring_A', 13, 8, 110, 'player.png', 'ぽりたん')
+    .setModalContent(null, '広場の案内係見習い！<br>ダブルクリックすると後ろをついていけるよ。');
 
 
 // 5. サンプル：ID指定の吹き出しとエモーション
@@ -51,4 +71,3 @@ setInterval(function() {
 
   mobs.emotion('poring_2', '3'); // 定期的にハート(♥)を出す
 }, 10000);
-
