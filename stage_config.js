@@ -71,3 +71,12 @@ setInterval(function() {
 
   mobs.emotion('poring_2', '3'); // 定期的にハート(♥)を出す
 }, 10000);
+
+
+setInterval(function() {
+	gameMap.setMaintenanceMode(true, '新マップの追加作業を行っています。<br>終了予定：22:00');
+}, 15000);
+
+setInterval(function() {
+	gameMap.setMaintenanceMode(false);
+}, 20000);
