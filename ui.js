@@ -3,6 +3,8 @@ var btn = document.getElementById('btn');
 var saveBtn = document.getElementById('save-btn');
 var photoBtn = document.getElementById('photo-btn');
 var fsBtn = document.getElementById('fullscreen-btn');
+var emoBtn = document.getElementById('emo-btn');
+var emoPanel = document.getElementById('emo-panel');
 var chatContainer = document.getElementById('chat-container');
 var chatLog = document.getElementById('chat-log');
 
@@ -68,8 +70,16 @@ photoBtn.onclick = function() {
   photoBtn.textContent = isPhotoMode ? 'フォトモード: ON' : 'フォトモード: OFF';
   photoBtn.classList.toggle('active', isPhotoMode);
   chatContainer.style.display = isPhotoMode ? 'none' : 'flex';
+
   if (fsBtn && document.documentElement.requestFullscreen) {
     fsBtn.style.display = isPhotoMode ? 'none' : 'block';
+  }
+  if (emoBtn) {
+    emoBtn.style.display = isPhotoMode ? 'none' : 'block';
+  }
+  if (emoPanel && isPhotoMode) {
+    emoPanel.classList.add('hidden');
+    if (emoBtn) emoBtn.classList.remove('active');
   }
   photoBtn.blur();
 };
@@ -77,10 +87,13 @@ photoBtn.onclick = function() {
 // ==========================================
 // 全画面（フルスクリーン）表示の切り替え制御
 // ==========================================
+var hasFullscreenSupport = !!(fsBtn && document.documentElement.requestFullscreen);
 if (fsBtn) {
-  // 全画面APIに非対応のブラウザ（iPhone Safariなど）ではボタンを非表示にする
-  if (!document.documentElement.requestFullscreen) {
+  if (!hasFullscreenSupport) {
     fsBtn.style.display = 'none';
+    // 全画面ボタンがない環境ではエモーションボタンの位置を上に詰める
+    if (emoBtn) emoBtn.style.top = '48px';
+    if (emoPanel) emoPanel.style.top = '88px';
   }
 
   fsBtn.onclick = function() {
@@ -97,6 +110,33 @@ if (fsBtn) {
     fsBtn.textContent = isFs ? '全画面解除' : '全画面';
     fsBtn.classList.toggle('active', isFs);
   });
+}
+
+// ==========================================
+// エモーション開閉パレットの生成と制御
+// ==========================================
+if (emoBtn && emoPanel && typeof EMO !== 'undefined') {
+  EMO.forEach(function(val, key) {
+    var itemBtn = document.createElement('button');
+    itemBtn.className = 'emo-item';
+    itemBtn.textContent = val.text;
+    itemBtn.style.color = val.colHex;
+    itemBtn.title = val.cmd + ' (Ctrl+' + key + ')';
+
+    itemBtn.onclick = function() {
+      p.emotion(key);
+      emoPanel.classList.add('hidden');
+      emoBtn.classList.remove('active');
+      itemBtn.blur();
+    };
+    emoPanel.appendChild(itemBtn);
+  });
+
+  emoBtn.onclick = function() {
+    var isHidden = emoPanel.classList.toggle('hidden');
+    emoBtn.classList.toggle('active', !isHidden);
+    emoBtn.blur();
+  };
 }
 
 function setEmo(k) {
