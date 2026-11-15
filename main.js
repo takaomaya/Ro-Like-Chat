@@ -137,6 +137,13 @@ function drawAll() {
 }
 
 function loop() {
+  // メンテナンスモード中は進行を一時停止し、描画のみ維持する
+  if (gameMap && gameMap.isMaintenance) {
+    drawAll();
+    requestAnimationFrame(loop);
+    return;
+  }
+
   var prevPx = p.x, prevPy = p.y;
 
   updateCameraByKeys();

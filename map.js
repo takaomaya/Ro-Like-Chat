@@ -7,6 +7,34 @@ class FieldMap {
     this.color2 = color2 || '#528740';
     this.wallTex = wallTexSrc ? getObstacleTexture(wallTexSrc) : null;
     this.wallHeight = wallHeight || 96; // 標準ズーム時の高さ(px)
+    this.isMaintenance = false;
+  }
+
+  // メンテナンスモードの切り替えメソッド
+  // 例: gameMap.setMaintenanceMode(true, 'アップデート作業中です。', '臨時メンテナンス');
+  setMaintenanceMode(active, message, title) {
+    this.isMaintenance = !!active;
+    var overlay = document.getElementById('maintenance-overlay');
+    if (!overlay) return;
+
+    if (this.isMaintenance) {
+      var titleEl = document.getElementById('maintenance-title');
+      var msgEl = document.getElementById('maintenance-message');
+      if (titleEl) {
+        titleEl.textContent = title || 'メンテナンス中';
+      }
+      if (msgEl) {
+        msgEl.innerHTML = message || '現在メンテナンスを行っています。<br>しばらくお待ちください。';
+      }
+      overlay.classList.remove('hidden');
+    } else {
+      overlay.classList.add('hidden');
+    }
+  }
+
+  // 現在のメンテナンス状態を反転させるメソッド
+  toggleMaintenanceMode(message, title) {
+    this.setMaintenanceMode(!this.isMaintenance, message, title);
   }
 
   isInside(x, y) {
