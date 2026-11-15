@@ -53,10 +53,10 @@ input { flex: 1; padding: 5px 8px; border-radius: 3px; border: 1px solid #555; m
    ========================================================= */
 @media (orientation: portrait) {
   #photo-btn {
-    padding: 10px 16px;
-    font-size: 16px;
+    padding: 18px 28px;
+    font-size: 24px;
+    border-radius: 6px;
   }
-
   /* チャット機能のUIを画面下の横いっぱいに広げる */
   #chat-container {
     left: 0;
