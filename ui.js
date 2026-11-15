@@ -187,16 +187,35 @@ var wallModalClose = document.getElementById('wall-modal-close');
 var isModalCentered = false;
 var currentModalWall = null; // 現在開いているウォールを記憶する変数
 
-function openWallModal(wall) {
-  if (!wallModal) return;
+// ==========================================
+// ロングウォール上面クリック時のミニウィンドウ制御
+// ==========================================
+var wallModal = document.getElementById('wall-modal');
+var wallModalHeader = document.getElementById('wall-modal-header');
+var wallModalTitle = document.getElementById('wall-modal-title');
+var wallModalBody = document.getElementById('wall-modal-body');
+var wallModalClose = document.getElementById('wall-modal-close');
+var isModalCentered = false;
+var currentModalKey = null; // 開いているウォールのID（key）を記憶
+var lastModalToggleTime = 0;
 
-  // すでにこのウォールのダイアログが開いている場合は閉じる
-  if (!wallModal.classList.contains('hidden') && currentModalWall === wall) {
+function openWallModal(wall) {
+  if (!wallModal || !wall) return;
+
+  // 短時間（200ms以内）の二重クリック・二重発火を防止
+  var now = Date.now();
+  if (now - lastModalToggleTime < 200) return;
+  lastModalToggleTime = now;
+
+  var isVisible = !wallModal.classList.contains('hidden');
+
+  // すでに同じIDのウォールが開いている場合は閉じる
+  if (isVisible && currentModalKey === wall.key) {
     closeWallModal();
     return;
   }
 
-  currentModalWall = wall;
+  currentModalKey = wall.key;
 
   if (wall.modalTitle !== null || wall.modalHtml !== null) {
     wallModalTitle.textContent = wall.modalTitle || ('ID: ' + wall.key);
@@ -220,5 +239,5 @@ function openWallModal(wall) {
 
 function closeWallModal() {
   if (wallModal) wallModal.classList.add('hidden');
-  currentModalWall = null; // 閉じたときに記憶をリセット
+  currentModalKey = null;
 }
