@@ -54,8 +54,8 @@ class LongWall {
     var dx = ent.x - cx, dy = ent.y - cy, dist = Math.hypot(dx, dy);
     if (dist < ent.r) {
       var ov = ent.r - dist;
-      ent.x += (dist > 0 ? dx / dist : 1) * ov; ent.y += (dist > 0 ? dy / dist : 0) * ov;
-      ent.tx = ent.x; ent.ty = ent.y;
+      ent.x += (dist > 0 ? dx / dist : 1) * ov;
+      ent.y += (dist > 0 ? dy / dist : 0) * ov;
     }
   }
 

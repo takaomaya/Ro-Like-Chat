@@ -63,12 +63,28 @@ class Mob {
     if (this.mTime > 0) this.mTime--;
     if (this.eTime > 0) this.eTime--;
 
+    var prevX = this.x, prevY = this.y;
     var dx = this.tx - this.x, dy = this.ty - this.y, d = Math.hypot(dx, dy);
     if (d > 0.05) {
-      this.x += (dx / d) * 0.035; this.y += (dy / d) * 0.035; this.mv = true;
-      this.updateDirection(dx, dy);
+      var dirX = dx / d, dirY = dy / d;
+      var moveX = dirX, moveY = dirY;
+
+      if (this.stuckTimer > 0) {
+        this.stuckTimer--;
+        var side = this.avoidSign || 1;
+        moveX = dirX * 0.35 + (-dirY * side) * 0.93;
+        moveY = dirY * 0.35 + (dirX * side) * 0.93;
+        var mLen = Math.hypot(moveX, moveY);
+        moveX /= mLen; moveY /= mLen;
+      }
+
+      this.x += moveX * 0.035;
+      this.y += moveY * 0.035;
+      this.mv = true;
+      this.updateDirection(moveX, moveY);
     } else {
       this.mv = false;
+      this.stuckTimer = 0;
       if (--this.wait <= 0) {
         this.tx = Math.max(1, Math.min(gameMap.width - 1, this.x + (Math.random() - 0.5) * 6));
         this.ty = Math.max(1, Math.min(gameMap.height - 1, this.y + (Math.random() - 0.5) * 6));
@@ -78,8 +94,27 @@ class Mob {
     this.x += this.vx; this.y += this.vy;
     gameMap.clampEntity(this);
     this.vx *= 0.85; this.vy *= 0.85;
-  }
 
+    // 移動中なのに前のフレームからほとんど動けていない場合は迂回方向をセット
+    if (this.mv && this.lastStepX !== undefined) {
+      if (Math.hypot(this.x - this.lastStepX, this.y - this.lastStepY) < 0.01) {
+        this.stuckCount = (this.stuckCount || 0) + 1;
+        if (this.stuckCount >= 6) {
+          if (!this.stuckTimer || this.stuckTimer <= 0) {
+            this.avoidSign = (typeof chooseAvoidSide === 'function')
+              ? chooseAvoidSide(this, (this.tx - this.x) / (d || 1), (this.ty - this.y) / (d || 1))
+              : 1;
+          }
+          this.stuckTimer = 35;
+          this.stuckCount = 0;
+        }
+      } else {
+        this.stuckCount = 0;
+      }
+    }
+    this.lastStepX = prevX;
+    this.lastStepY = prevY;
+  }
   draw(s, sc) {
     if (!isPhotoMode && p.followMob === this) {
       ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2;
