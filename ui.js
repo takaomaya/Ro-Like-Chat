@@ -166,7 +166,7 @@ function sendChat() {
 btn.onclick = sendChat;
 
 // ==========================================
-// ロングウォール上面クリック時のミニウィンドウ制御（トグル開閉＋ドラッグ移動）
+// ロングウォール上面クリック時のミニウィンドウ制御（トグル開閉＋確実なドラッグ移動）
 // ==========================================
 var wallModal = document.getElementById('wall-modal');
 var wallModalHeader = document.getElementById('wall-modal-header');
@@ -219,25 +219,29 @@ function closeWallModal() {
 }
 
 if (wallModalClose) {
-  wallModalClose.onclick = closeWallModal;
+  wallModalClose.onclick = function(e) {
+    e.stopPropagation();
+    closeWallModal();
+  };
 }
 
 if (wallModalHeader && wallModal) {
-  wallModalHeader.style.touchAction = 'none'; // スマホでのドラッグ時に画面スクロールを防止
+  wallModalHeader.style.touchAction = 'none';
   var isModalDragging = false;
   var modalOffsetX = 0;
   var modalOffsetY = 0;
 
-  wallModalHeader.onpointerdown = function(e) {
+  wallModalHeader.addEventListener('pointerdown', function(e) {
     if (e.target === wallModalClose) return;
+    e.preventDefault();
+    e.stopPropagation();
     isModalDragging = true;
     var rect = wallModal.getBoundingClientRect();
     modalOffsetX = e.clientX - rect.left;
     modalOffsetY = e.clientY - rect.top;
-    wallModalHeader.setPointerCapture(e.pointerId);
-  };
+  });
 
-  wallModalHeader.onpointermove = function(e) {
+  window.addEventListener('pointermove', function(e) {
     if (!isModalDragging) return;
     var maxX = window.innerWidth - wallModal.offsetWidth;
     var maxY = window.innerHeight - wallModal.offsetHeight;
@@ -245,19 +249,13 @@ if (wallModalHeader && wallModal) {
     var nextY = Math.max(0, Math.min(maxY, e.clientY - modalOffsetY));
     wallModal.style.left = nextX + 'px';
     wallModal.style.top = nextY + 'px';
-  };
+  });
 
-  wallModalHeader.onpointerup = function(e) {
-    if (isModalDragging) {
-      isModalDragging = false;
-      wallModalHeader.releasePointerCapture(e.pointerId);
-    }
-  };
+  window.addEventListener('pointerup', function() {
+    isModalDragging = false;
+  });
 
-  wallModalHeader.onpointercancel = function(e) {
-    if (isModalDragging) {
-      isModalDragging = false;
-      wallModalHeader.releasePointerCapture(e.pointerId);
-    }
-  };
+  window.addEventListener('pointercancel', function() {
+    isModalDragging = false;
+  });
 }
