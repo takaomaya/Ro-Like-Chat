@@ -135,10 +135,9 @@ var gameMap = new FieldMap(20, 20, '#5c9449', '#528740', 'red.png', 96);
 
 
 管理者モードでのsay
-• gameMap.say(text, duration, pinned, senderName)
+• gameMap.say(text, duration, senderName)
 	• text：周知メッセージの本文。
 	• duration：表示フレーム数（省略時は 300）。
-	• pinned：true を指定すると画面をクリックするまで消えずに残ります（省略時は false）。
 	• senderName：発言者名（デフォルトは空で発言者名は入りません。指定した場合のみ 発言者名 : 本文 になります）。
 
 通常の周知（発言者名なし・約5秒表示・ログ記録）

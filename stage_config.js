@@ -73,12 +73,12 @@ setInterval(function() {
 
   mobs.emotion('poring_2', '3'); // 定期的にハート(♥)を出す
 
-  gameMap.say('【緊急】まもなく臨時メンテナンスを開始します', 300, true);
+  gameMap.say('【緊急】まもなく臨時メンテナンスを開始します', 300);
   
 }, 10000);
 
 setInterval(function() {
-  gameMap.say('ご来場ありがとうございます！', 300, false, '運営スタッフ');
+  gameMap.say('ご来場ありがとうございます！', 300, '運営スタッフ');
 }, 15000);
 
 /*
