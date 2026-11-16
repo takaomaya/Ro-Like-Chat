@@ -65,7 +65,7 @@ mobs.add('poring_A', 13, 8, 110, 'player.png', 'ぽりたん')
 mobs.say('poring_1', 'こんにちわ', 180);
 mobs.emotion('poring_1', '3'); // ハート(♥)を表示
 
-gameMap.say('イベント終了まであと10分です！');
+gameMap.say('イベント終了まであと10分です！ログアウトの準備は大丈夫でしょうか？準備完了次第ご退場ください。');
 
 setInterval(function() {
   mobs.say('poring_1', 'こんにちわ', 180);
