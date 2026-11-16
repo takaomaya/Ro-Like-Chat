@@ -65,11 +65,16 @@ mobs.add('poring_A', 13, 8, 110, 'player.png', 'ぽりたん')
 mobs.say('poring_1', 'こんにちわ', 180);
 mobs.emotion('poring_1', '3'); // ハート(♥)を表示
 
+gameMap.say('イベント終了まであと10分です！');
+
 setInterval(function() {
   mobs.say('poring_1', 'こんにちわ', 180);
   mobs.emotion('poring_1', '1'); // 定期的にハート(♥)を出す
 
   mobs.emotion('poring_2', '3'); // 定期的にハート(♥)を出す
+
+  gameMap.say('【緊急】まもなく臨時メンテナンスを開始します', 300, true);
+  
 }, 10000);
 
 /*
