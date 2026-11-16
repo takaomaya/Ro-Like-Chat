@@ -12,18 +12,16 @@ class FieldMap {
     // システム周知メッセージ用プロパティ
     this.sysMsg = '';
     this.sysTime = 0;
-    this.isSysPinned = false;
   }
 
-  // 管理者用システム周知メソッド
+  // 管理者用システム周知メソッド（時間経過で自動消去）
   // 例: gameMap.say('イベント終了まであと5分です！');
-  // 例: gameMap.say('まもなくメンテナンスに入ります', 600, true, '運営');
-  say(text, duration, pinned, senderName) {
+  // 例: gameMap.say('まもなくメンテナンスに入ります', 600, '運営');
+  say(text, duration, senderName) {
     if (!text) return;
     var prefix = senderName ? (senderName + ' : ') : '';
     this.sysMsg = prefix + text;
     this.sysTime = duration || 300;
-    this.isSysPinned = !!pinned;
 
     if (typeof addChatLog === 'function') {
       addChatLog(this.sysMsg, 'sys');
@@ -32,7 +30,7 @@ class FieldMap {
 
   // システム周知のタイマー更新
   updateNotice() {
-    if (!this.isSysPinned && this.sysTime > 0) {
+    if (this.sysTime > 0) {
       this.sysTime--;
     }
   }
@@ -41,7 +39,6 @@ class FieldMap {
   drawNotice() {
     if (this.sysTime <= 0 || !this.sysMsg) return;
 
-    // ミニマップの下端位置を基準にする（フォトモード中でも同じ高さを維持）
     var miniBottom = 152;
     if (typeof getMinimapBounds === 'function') {
       var b = getMinimapBounds();
@@ -55,7 +52,7 @@ class FieldMap {
     ctx.textBaseline = 'middle';
 
     // 消える直前はふわっとフェードアウトさせる
-    if (!this.isSysPinned && this.sysTime < 25) {
+    if (this.sysTime < 25) {
       ctx.globalAlpha = this.sysTime / 25;
     }
 
@@ -76,7 +73,6 @@ class FieldMap {
     ctx.fillText(this.sysMsg, cx, noticeY + 1);
     ctx.restore();
   }
-
   // メンテナンスモードの切り替えメソッド
   setMaintenanceMode(active, message, title) {
     this.isMaintenance = !!active;

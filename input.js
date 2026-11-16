@@ -47,11 +47,6 @@ c.onpointerdown = function(e) {
     p.mTime = 0;
   }
 
-  if (gameMap && gameMap.isSysPinned) {
-    gameMap.isSysPinned = false;
-    gameMap.sysTime = 0;
-  }
-
   lastMouseX = prevX = e.clientX;
   lastMouseY = prevY = e.clientY;
 
