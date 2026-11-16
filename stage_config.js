@@ -5,7 +5,7 @@
 // 1. 主人公の初期設定（名前・アバター画像・開始座標）
 p.name = 'ふみか';
 p.setImage('human.png'); // image/ フォルダ内の画像ファイル名を指定
-p.setAdmin(true); // イベント管理者権限を付与（falseにするとプルダウンが消えます）
+p.setAdmin(false); // イベント管理者権限を付与（falseにするとプルダウンが消えます）
 p.x = 8;
 p.y = 8;
 p.tx = 8;
