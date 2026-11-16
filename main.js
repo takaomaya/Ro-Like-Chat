@@ -134,9 +134,14 @@ function drawAll() {
   if (!isPhotoMode) {
     drawMinimap();
   }
-}
 
+  // システム周知メッセージをミニマップより少し下の画面中央に描画
+  gameMap.drawNotice();
+}
 function loop() {
+	
+  if (gameMap) gameMap.updateNotice();
+
   // メンテナンスモード中は進行を一時停止し、描画のみ維持する
   if (gameMap && gameMap.isMaintenance) {
     drawAll();

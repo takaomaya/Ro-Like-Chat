@@ -8,10 +8,76 @@ class FieldMap {
     this.wallTex = wallTexSrc ? getObstacleTexture(wallTexSrc) : null;
     this.wallHeight = wallHeight || 96; // 標準ズーム時の高さ(px)
     this.isMaintenance = false;
+
+    // システム周知メッセージ用プロパティ
+    this.sysMsg = '';
+    this.sysTime = 0;
+    this.isSysPinned = false;
+  }
+
+  // 管理者用システム周知メソッド
+  // 例: gameMap.say('イベント終了まであと5分です！');
+  // 例: gameMap.say('まもなくメンテナンスに入ります', 600, true, '運営');
+  say(text, duration, pinned, senderName) {
+    if (!text) return;
+    var prefix = senderName ? (senderName + ' : ') : '';
+    this.sysMsg = prefix + text;
+    this.sysTime = duration || 300;
+    this.isSysPinned = !!pinned;
+
+    if (typeof addChatLog === 'function') {
+      addChatLog(this.sysMsg, 'sys');
+    }
+  }
+
+  // システム周知のタイマー更新
+  updateNotice() {
+    if (!this.isSysPinned && this.sysTime > 0) {
+      this.sysTime--;
+    }
+  }
+
+  // ミニマップより少し下の行・画面中央にシステム周知を描画する
+  drawNotice() {
+    if (this.sysTime <= 0 || !this.sysMsg) return;
+
+    // ミニマップの下端位置を基準にする（フォトモード中でも同じ高さを維持）
+    var miniBottom = 152;
+    if (typeof getMinimapBounds === 'function') {
+      var b = getMinimapBounds();
+      miniBottom = b.y + b.h;
+    }
+    var noticeY = miniBottom + 24;
+
+    ctx.save();
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // 消える直前はふわっとフェードアウトさせる
+    if (!this.isSysPinned && this.sysTime < 25) {
+      ctx.globalAlpha = this.sysTime / 25;
+    }
+
+    var padX = 18;
+    var boxH = 30;
+    var w = ctx.measureText(this.sysMsg).width + padX * 2;
+    var cx = c.width / 2;
+
+    // 背景と金枠
+    ctx.fillStyle = 'rgba(10, 18, 28, 0.85)';
+    ctx.fillRect(cx - w / 2, noticeY - boxH / 2, w, boxH);
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(cx - w / 2, noticeY - boxH / 2, w, boxH);
+
+    // 周知テキスト
+    ctx.fillStyle = '#fde047';
+    ctx.fillText(this.sysMsg, cx, noticeY + 1);
+    ctx.restore();
   }
 
   // メンテナンスモードの切り替えメソッド
-  // 例: gameMap.setMaintenanceMode(true, 'アップデート作業中です。', '臨時メンテナンス');
   setMaintenanceMode(active, message, title) {
     this.isMaintenance = !!active;
     var overlay = document.getElementById('maintenance-overlay');
@@ -53,29 +119,25 @@ class FieldMap {
     var w = this.width;
     var d = this.height;
 
-    // マップ四隅の地面スクリーン座標（時計回り: 北西 -> 北東 -> 南東 -> 南西）
     var c0 = toS(0, 0);
     var c1 = toS(w, 0);
     var c2 = toS(w, d);
     var c3 = toS(0, d);
 
-    // 4辺の定義（stepsは繰り返しマス数）
     var edges = [
-      { a: c0, b: c1, steps: w, shade: 0.10 }, // 北辺（y = 0）
-      { a: c1, b: c2, steps: d, shade: 0.22 }, // 東辺（x = width）
-      { a: c2, b: c3, steps: w, shade: 0.10 }, // 南辺（y = height）
-      { a: c3, b: c0, steps: d, shade: 0.22 }  // 西辺（x = 0）
+      { a: c0, b: c1, steps: w, shade: 0.10 },
+      { a: c1, b: c2, steps: d, shade: 0.22 },
+      { a: c2, b: c3, steps: w, shade: 0.10 },
+      { a: c3, b: c0, steps: d, shade: 0.22 }
     ];
 
     var self = this;
     edges.forEach(function(edge) {
-      // 時計回り定義のため、画面上で左から右へ向かう辺(b.x > a.x)が必ず「奥側」になる
       if (edge.b.x - edge.a.x > 0) {
         var ta = { x: edge.a.x, y: edge.a.y - h };
         var tb = { x: edge.b.x, y: edge.b.y - h };
 
         if (self.wallTex && self.wallTex.loaded) {
-          // 1マスごとにテクスチャをタイル貼り付け
           var count = Math.max(1, Math.round(edge.steps));
           for (var i = 0; i < count; i++) {
             var r0 = i / count;
@@ -88,7 +150,6 @@ class FieldMap {
             );
           }
         } else {
-          // テクスチャ未指定・読み込み前は石壁風の単色で描画
           ctx.fillStyle = edge.shade > 0.15 ? '#5c6672' : '#707b88';
           ctx.beginPath();
           ctx.moveTo(edge.a.x, edge.a.y);
@@ -99,7 +160,6 @@ class FieldMap {
           ctx.fill();
         }
 
-        // 壁の輪郭線を描画
         ctx.strokeStyle = '#2b303a';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
@@ -114,10 +174,8 @@ class FieldMap {
   }
 
   draw() {
-    // 1. 奥側の外周壁を先に描画（地面やキャラの背後に配置）
     this.drawBackWalls();
 
-    // 2. 地面タイルを描画
     for (var x = 0; x < this.width; x++) {
       for (var y = 0; y < this.height; y++) {
         var p0 = toS(x, y), p1 = toS(x + 1, y), p2 = toS(x + 1, y + 1), p3 = toS(x, y + 1);
