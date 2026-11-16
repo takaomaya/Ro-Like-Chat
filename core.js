@@ -65,10 +65,18 @@ class Player {
     this.emoData = null; this.eTime = 0;
     this.followMob = null;
     this.isAdmin = false; // イベント管理者フラグ（true / false）
+    this.isGM = false;    // GMフラグ（true / false）
   }
 
   setAdmin(flag) {
     this.isAdmin = !!flag;
+    if (typeof updateAdminChatUI === 'function') {
+      updateAdminChatUI();
+    }
+  }
+
+  setGM(flag) {
+    this.isGM = !!flag;
     if (typeof updateAdminChatUI === 'function') {
       updateAdminChatUI();
     }

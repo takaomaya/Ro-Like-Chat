@@ -11,21 +11,35 @@ var chatLog = document.getElementById('chat-log');
 
 var fullChatHistory = [];
 
-// プレイヤーの管理者権限に応じて「普 / 管」プルダウンを表示・非表示にする関数
+// プレイヤーの管理者・GM権限に応じてプルダウンと選択肢を制御する関数
 function updateAdminChatUI() {
   if (!chatModeSel) return;
-  if (typeof p !== 'undefined' && p.isAdmin) {
+  var isGM = (typeof p !== 'undefined' && !!p.isGM);
+  var isAdmin = (typeof p !== 'undefined' && !!p.isAdmin);
+  var gmOption = chatModeSel.querySelector('option[value="gm"]');
+
+  if (isGM || isAdmin) {
     chatModeSel.classList.remove('hidden');
+    if (gmOption) {
+      gmOption.style.display = isGM ? '' : 'none';
+      gmOption.disabled = !isGM;
+    }
+    if (!isGM && chatModeSel.value === 'gm') {
+      chatModeSel.value = 'normal';
+    }
   } else {
     chatModeSel.classList.add('hidden');
     chatModeSel.value = 'normal';
-    chatModeSel.classList.remove('admin-selected');
   }
+
+  chatModeSel.classList.toggle('admin-selected', chatModeSel.value === 'admin');
+  chatModeSel.classList.toggle('gm-selected', chatModeSel.value === 'gm');
 }
 
 if (chatModeSel) {
   chatModeSel.onchange = function() {
     chatModeSel.classList.toggle('admin-selected', chatModeSel.value === 'admin');
+    chatModeSel.classList.toggle('gm-selected', chatModeSel.value === 'gm');
     chatModeSel.blur();
   };
 }
@@ -105,9 +119,6 @@ photoBtn.onclick = function() {
   photoBtn.blur();
 };
 
-// ==========================================
-// 全画面（フルスクリーン）表示の切り替え制御
-// ==========================================
 var hasFullscreenSupport = !!(fsBtn && document.documentElement.requestFullscreen);
 if (fsBtn) {
   if (!hasFullscreenSupport) {
@@ -132,9 +143,6 @@ if (fsBtn) {
   });
 }
 
-// ==========================================
-// エモーション開閉パレットの生成と制御
-// ==========================================
 if (emoBtn && emoPanel && typeof EMO !== 'undefined') {
   EMO.forEach(function(val, key) {
     var itemBtn = document.createElement('button');
@@ -171,22 +179,27 @@ function sendChat() {
     if (hitKey) {
       p.emotion(hitKey);
     } else {
-      var isAdminMode = (typeof p !== 'undefined' && p.isAdmin && chatModeSel && chatModeSel.value === 'admin');
-      if (isAdminMode) {
-        // 「管」モード：発言者名付きでシステム周知メソッドへ引き渡す
+      var mode = (chatModeSel && !chatModeSel.classList.contains('hidden')) ? chatModeSel.value : 'normal';
+      var isGMAllowed = (typeof p !== 'undefined' && !!p.isGM);
+      var isAdminAllowed = (typeof p !== 'undefined' && (!!p.isAdmin || !!p.isGM));
+
+      if (mode === 'gm' && isGMAllowed) {
+        var gmText = (t.startsWith('@') || t.startsWith('＠')) ? t.slice(1).trim() : t;
+        if (gmText && typeof gameMap !== 'undefined') {
+          gameMap.say(gmText, 300);
+        }
+      } else if (mode === 'admin' && isAdminAllowed) {
         var noticeText = (t.startsWith('@') || t.startsWith('＠')) ? t.slice(1).trim() : t;
         if (noticeText && typeof gameMap !== 'undefined') {
           gameMap.say(noticeText, 300, p.name);
         }
       } else if (t.startsWith('@') || t.startsWith('＠')) {
-        // 「普」モード（＠付き固定発言）
         var body = t.slice(1).trim();
         if (body) {
           p.say(body, 300, true);
           addChatLog(p.name + ' : ' + body, 'self');
         }
       } else {
-        // 「普」モード（通常発言）
         p.say(t, 300, false);
         addChatLog(p.name + ' : ' + t, 'self');
       }
@@ -196,11 +209,6 @@ function sendChat() {
   inp.blur();
 }
 btn.onclick = sendChat;
-
-// ==========================================
-// ロングウォール・Mobクリック時のミニウィンドウ制御
-// （トグル開閉・中央配置・ドラッグ移動・ESCキー閉じる対応）
-// ==========================================
 var wallModal = document.getElementById('wall-modal');
 var wallModalHeader = document.getElementById('wall-modal-header');
 var wallModalTitle = document.getElementById('wall-modal-title');
@@ -271,14 +279,12 @@ if (wallModalClose) {
   };
 }
 
-// ESCキーを押したときにダイアログが開いていれば閉じる
 window.addEventListener('keydown', function(e) {
   if (e.key === 'Escape' && wallModal && !wallModal.classList.contains('hidden')) {
     closeWallModal();
   }
 });
 
-// ダイアログ本文のスクロール操作が背後のマップに伝わらないようにする
 if (wallModalBody) {
   wallModalBody.addEventListener('wheel', function(e) { e.stopPropagation(); });
   wallModalBody.addEventListener('pointerdown', function(e) { e.stopPropagation(); });

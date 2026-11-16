@@ -97,6 +97,11 @@ input { flex: 1; padding: 5px 8px; border-radius: 3px; border: 1px solid #555; m
   border-color: #eab308;
   color: #854d0e;
 }
+#chat-mode.gm-selected {
+  background: #fecaca;
+  border-color: #ef4444;
+  color: #991b1b;
+}
 /* =========================================================
    スマホ縦画面専用（横画面には一切影響しません）
    ========================================================= */
