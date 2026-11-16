@@ -166,14 +166,15 @@ function sendChat() {
 btn.onclick = sendChat;
 
 // ==========================================
-// ロングウォール上面クリック時のミニウィンドウ制御（トグル開閉＋中央配置＋ドラッグ移動）
+// ロングウォール・Mobクリック時のミニウィンドウ制御
+// （トグル開閉・中央配置・ドラッグ移動・ESCキー閉じる対応）
 // ==========================================
 var wallModal = document.getElementById('wall-modal');
 var wallModalHeader = document.getElementById('wall-modal-header');
 var wallModalTitle = document.getElementById('wall-modal-title');
 var wallModalBody = document.getElementById('wall-modal-body');
 var wallModalClose = document.getElementById('wall-modal-close');
-var isModalMovedByUser = false; // ユーザーがドラッグ移動したかどうかのフラグ
+var isModalMovedByUser = false;
 var currentModalKey = null;
 var lastModalToggleTime = 0;
 
@@ -225,6 +226,7 @@ function openWallModal(target) {
     centerWallModal();
   }
 }
+
 function closeWallModal() {
   if (wallModal) wallModal.classList.add('hidden');
   currentModalKey = null;
@@ -236,6 +238,13 @@ if (wallModalClose) {
     closeWallModal();
   };
 }
+
+// ESCキーを押したときにダイアログが開いていれば閉じる
+window.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape' && wallModal && !wallModal.classList.contains('hidden')) {
+    closeWallModal();
+  }
+});
 
 // ダイアログ本文のスクロール操作が背後のマップに伝わらないようにする
 if (wallModalBody) {
