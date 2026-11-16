@@ -36,6 +36,7 @@ class FieldMap {
   }
 
   // ミニマップより少し下の行・画面中央にシステム周知を描画する
+  // ミニマップより少し下の行・画面中央にシステム周知を描画する（長文の自動折り返し対応）
   drawNotice() {
     if (this.sysTime <= 0 || !this.sysMsg) return;
 
@@ -44,7 +45,7 @@ class FieldMap {
       var b = getMinimapBounds();
       miniBottom = b.y + b.h;
     }
-    var noticeY = miniBottom + 24;
+    var startTopY = miniBottom + 10;
 
     ctx.save();
     ctx.font = 'bold 14px sans-serif';
@@ -57,20 +58,60 @@ class FieldMap {
     }
 
     var padX = 18;
-    var boxH = 30;
-    var w = ctx.measureText(this.sysMsg).width + padX * 2;
+    var padY = 8;
+    var lineHeight = 20;
+    // 画面幅の88%（最大680px）をテキストの最大横幅とする
+    var maxTextWidth = Math.max(180, Math.min(680, c.width * 0.88 - padX * 2));
+
+    // 改行コード(\n)および最大横幅での自動折り返し処理
+    var lines = [];
+    var paragraphs = this.sysMsg.split('\n');
+    paragraphs.forEach(function(para) {
+      if (para === '') {
+        lines.push('');
+        return;
+      }
+      var currentLine = '';
+      for (var i = 0; i < para.length; i++) {
+        var ch = para.charAt(i);
+        var testLine = currentLine + ch;
+        if (ctx.measureText(testLine).width > maxTextWidth && currentLine.length > 0) {
+          lines.push(currentLine);
+          currentLine = ch;
+        } else {
+          currentLine = testLine;
+        }
+      }
+      if (currentLine.length > 0) {
+        lines.push(currentLine);
+      }
+    });
+
+    // 全行の中で最も長い行の幅に合わせてボックス横幅を決定
+    var maxLineW = 0;
+    lines.forEach(function(line) {
+      var lw = ctx.measureText(line).width;
+      if (lw > maxLineW) maxLineW = lw;
+    });
+
+    var boxW = maxLineW + padX * 2;
+    var boxH = lines.length * lineHeight + padY * 2;
     var cx = c.width / 2;
 
     // 背景と金枠
     ctx.fillStyle = 'rgba(10, 18, 28, 0.85)';
-    ctx.fillRect(cx - w / 2, noticeY - boxH / 2, w, boxH);
+    ctx.fillRect(cx - boxW / 2, startTopY, boxW, boxH);
     ctx.strokeStyle = '#fbbf24';
     ctx.lineWidth = 1.5;
-    ctx.strokeRect(cx - w / 2, noticeY - boxH / 2, w, boxH);
+    ctx.strokeRect(cx - boxW / 2, startTopY, boxW, boxH);
 
-    // 周知テキスト
+    // 各行のテキストを描画
     ctx.fillStyle = '#fde047';
-    ctx.fillText(this.sysMsg, cx, noticeY + 1);
+    lines.forEach(function(line, idx) {
+      var lineY = startTopY + padY + lineHeight * idx + lineHeight / 2;
+      ctx.fillText(line, cx, lineY);
+    });
+
     ctx.restore();
   }
   // メンテナンスモードの切り替えメソッド
