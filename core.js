@@ -64,6 +64,14 @@ class Player {
     this.isMsgPinned = false; // ＠付き発言の固定表示フラグ
     this.emoData = null; this.eTime = 0;
     this.followMob = null;
+    this.isAdmin = false; // イベント管理者フラグ（true / false）
+  }
+
+  setAdmin(flag) {
+    this.isAdmin = !!flag;
+    if (typeof updateAdminChatUI === 'function') {
+      updateAdminChatUI();
+    }
   }
 
   setImage(src) {

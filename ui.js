@@ -5,10 +5,31 @@ var photoBtn = document.getElementById('photo-btn');
 var fsBtn = document.getElementById('fullscreen-btn');
 var emoBtn = document.getElementById('emo-btn');
 var emoPanel = document.getElementById('emo-panel');
+var chatModeSel = document.getElementById('chat-mode');
 var chatContainer = document.getElementById('chat-container');
 var chatLog = document.getElementById('chat-log');
 
 var fullChatHistory = [];
+
+// プレイヤーの管理者権限に応じて「普 / 管」プルダウンを表示・非表示にする関数
+function updateAdminChatUI() {
+  if (!chatModeSel) return;
+  if (typeof p !== 'undefined' && p.isAdmin) {
+    chatModeSel.classList.remove('hidden');
+  } else {
+    chatModeSel.classList.add('hidden');
+    chatModeSel.value = 'normal';
+    chatModeSel.classList.remove('admin-selected');
+  }
+}
+
+if (chatModeSel) {
+  chatModeSel.onchange = function() {
+    chatModeSel.classList.toggle('admin-selected', chatModeSel.value === 'admin');
+    chatModeSel.blur();
+  };
+}
+updateAdminChatUI();
 
 chatLog.addEventListener('wheel', function(e) {
   e.stopPropagation();
@@ -149,15 +170,26 @@ function sendChat() {
     EMO.forEach(function(val, key) { if (val.cmd === t.toLowerCase()) hitKey = key; });
     if (hitKey) {
       p.emotion(hitKey);
-    } else if (t.startsWith('@') || t.startsWith('＠')) {
-      var body = t.slice(1).trim();
-      if (body) {
-        p.say(body, 300, true);
-        addChatLog(p.name + ' : ' + body, 'self');
-      }
     } else {
-      p.say(t, 300, false);
-      addChatLog(p.name + ' : ' + t, 'self');
+      var isAdminMode = (typeof p !== 'undefined' && p.isAdmin && chatModeSel && chatModeSel.value === 'admin');
+      if (isAdminMode) {
+        // 「管」モード：発言者名付きでシステム周知メソッドへ引き渡す
+        var noticeText = (t.startsWith('@') || t.startsWith('＠')) ? t.slice(1).trim() : t;
+        if (noticeText && typeof gameMap !== 'undefined') {
+          gameMap.say(noticeText, 300, p.name);
+        }
+      } else if (t.startsWith('@') || t.startsWith('＠')) {
+        // 「普」モード（＠付き固定発言）
+        var body = t.slice(1).trim();
+        if (body) {
+          p.say(body, 300, true);
+          addChatLog(p.name + ' : ' + body, 'self');
+        }
+      } else {
+        // 「普」モード（通常発言）
+        p.say(t, 300, false);
+        addChatLog(p.name + ' : ' + t, 'self');
+      }
     }
     inp.value = '';
   }

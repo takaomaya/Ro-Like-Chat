@@ -81,7 +81,22 @@ canvas { display: block; touch-action: none; }
 input { flex: 1; padding: 5px 8px; border-radius: 3px; border: 1px solid #555; min-width: 0; }
 #btn { padding: 5px 10px; background: #3b6ea5; color: #fff; border: 0; border-radius: 3px; cursor: pointer; white-space: nowrap; }
 #save-btn { padding: 5px 10px; background: #2e7d32; color: #fff; border: 0; border-radius: 3px; cursor: pointer; white-space: nowrap; }
-
+/* 通常（PC・横画面）のプルダウンスタイル */
+#chat-mode {
+  padding: 5px 4px;
+  border-radius: 3px;
+  border: 1px solid #555;
+  background: #f8fafc;
+  color: #1e293b;
+  font-weight: bold;
+  font-size: 12px;
+  cursor: pointer;
+}
+#chat-mode.admin-selected {
+  background: #fef08a;
+  border-color: #eab308;
+  color: #854d0e;
+}
 /* =========================================================
    スマホ縦画面専用（横画面には一切影響しません）
    ========================================================= */
@@ -144,6 +159,10 @@ input { flex: 1; padding: 5px 8px; border-radius: 3px; border: 1px solid #555; m
     width: 85%;
     max-width: 320px;
     font-size: 15px;
+  }
+ #chat-mode {
+    font-size: 16px;
+    padding: 10px 6px;
   }
 }
 /* =========================================================

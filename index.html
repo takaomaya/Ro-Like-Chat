@@ -22,9 +22,13 @@
   <div id="chat-container">
     <div id="chat-log"></div>
     <div id="chat">
-      <input id="in" placeholder="発言 /lv /! /?" maxlength="30">
+      <select id="chat-mode" class="hidden">
+        <option value="normal">普</option>
+        <option value="admin">管</option>
+      </select>
+      <input id="in" type="text" placeholder="チャット / コマンド入力">
       <button id="btn">発言</button>
-      <button id="save-btn" title="チャットログをテキスト保存">保存</button>
+      <button id="save-btn">保存</button>
     </div>
   </div>
 
