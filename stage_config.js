@@ -6,6 +6,7 @@
 p.name = 'ふみか';
 p.setImage('human.png'); // image/ フォルダ内の画像ファイル名を指定
 p.setAdmin(true); // イベント管理者権限を付与（falseにするとプルダウンが消えます）
+p.setGM(true);    // GM権限を付与
 p.x = 8;
 p.y = 8;
 p.tx = 8;
