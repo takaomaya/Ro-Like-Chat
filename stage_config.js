@@ -77,6 +77,10 @@ setInterval(function() {
   
 }, 10000);
 
+setInterval(function() {
+  gameMap.say('ご来場ありがとうございます！', 300, false, '運営スタッフ');
+}, 15000);
+
 /*
 setInterval(function() {
 	gameMap.setMaintenanceMode(true, '新マップの追加作業を行っています。<br>終了予定：22:00');
