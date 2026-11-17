@@ -254,7 +254,7 @@ class FieldMap {
     // マップ中心を基準に、マップ全体を囲う半径を計算（対角線の半分＋余白）
     var cx = this.width / 2;
     var cy = this.height / 2;
-    var radiusW = Math.hypot(this.width, this.height) * 0.56;
+    var radiusW = Math.hypot(this.width, this.height) * 0.85;
 
     // マップ中心のスクリーン座標
     var centerS = toS(cx, cy);
