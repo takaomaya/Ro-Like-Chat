@@ -50,6 +50,13 @@ class FieldMap {
     return this;
   }
  
+   // スカイドームを「カメラを内包する巨大サイズ」にするか切り替えるメソッド
+  // true: カメラを内包（視界全体が空になる） / false: マップ外周を囲うドームサイズ
+  setSkyDomeEncloseCamera(enclose) {
+    this.encloseCamera = !!enclose;
+    return this;
+  }
+ 
   // 管理者用システム周知メソッド（時間経過で自動消去）
   // 例: gameMap.say('イベント終了まであと5分です！');
   // 例: gameMap.say('まもなくメンテナンスに入ります', 600, '運営');
@@ -71,7 +78,6 @@ class FieldMap {
     }
   }
 
-  // ミニマップより少し下の行・画面中央にシステム周知を描画する
   // ミニマップより少し下の行・画面中央にシステム周知を描画する（長文の自動折り返し対応）
   drawNotice() {
     if (this.sysTime <= 0 || !this.sysMsg) return;
@@ -246,60 +252,71 @@ class FieldMap {
     });
   }
 
-  // スカイドーム（マップ全体を覆う滑らかな球状の天蓋）を描画する
+  // スカイドーム（球状の天蓋の内壁）を描画する
   drawSkyDome() {
     if (!this.showSkyDome) return;
 
-    var sc = cam.size / 48;
-    // マップ中心を基準に、マップ全体を囲う半径を計算（対角線の半分＋余白）
     var cx = this.width / 2;
     var cy = this.height / 2;
-    var radiusW = Math.hypot(this.width, this.height) * 0.85;
-
-    // マップ中心のスクリーン座標
     var centerS = toS(cx, cy);
-
-    // 地面に接するドーム底面の楕円半径（X方向・Y方向）
-    var rx = radiusW * cam.size;
-    var ry = rx * cam.pitch;
-
-    // ドームの天頂（高さ）のスクリーン上の見かけの高さ
-    // 真横(pitch=0)で真円(rx)、真上(pitch=1)で高さ0になる3D球体の正射影公式
-    var domeHeight = rx * Math.sqrt(Math.max(0.05, 1 - cam.pitch * cam.pitch));
 
     ctx.save();
 
-    // 1. 球状ドーム全体のシルエットパスを作成
-    // （地面の奥側半楕円 ＋ 上空のドーム円弧 ＋ 地面の手前側半楕円で閉じた完全な球状シルエット）
-    ctx.beginPath();
-    // 底面の右端(0)から手前を通って左端(PI)へ
-    ctx.ellipse(centerS.x, centerS.y, rx, ry, 0, 0, Math.PI, false);
-    // 左端から天頂を通って右端へ（3D球体のシルエット曲線）
-    ctx.ellipse(centerS.x, centerS.y, rx, domeHeight, 0, Math.PI, 0, false);
-    ctx.closePath();
+    if (this.encloseCamera) {
+      // 【カメラを内包するサイズ】
+      // カメラ自身がドームの完全に内側にいるため、外枠の輪郭は画面外になり視界全体が空に包まれる
+      var screenDiag = Math.hypot(c.width, c.height);
+      var skyRadius = screenDiag * 1.4;
+      // 見下ろし角度(pitch)に応じて天頂の位置を上下にシフト
+      var zenithOffsetY = skyRadius * 0.45 * (1 - cam.pitch * 0.6);
 
-    // 2. ベースとなる空色で塗りつぶし
-    ctx.fillStyle = this.skyDomeColor;
-    ctx.fill();
+      ctx.fillStyle = this.skyDomeColor;
+      ctx.fillRect(0, 0, c.width, c.height);
 
-    // 3. 球体の丸み（天頂が明るく、地平線に向かって深みが出る立体感）を滑らかなグラデーションで表現
-    var grad = ctx.createRadialGradient(
-      centerS.x, centerS.y - domeHeight * 0.45, rx * 0.05,
-      centerS.x, centerS.y - domeHeight * 0.15, Math.max(rx, domeHeight) * 1.05
-    );
-    grad.addColorStop(0, 'rgba(255, 255, 255, 0.22)'); // 天頂付近のハイライト
-    grad.addColorStop(0.6, 'rgba(255, 255, 255, 0.0)'); // 中間は指定色そのまま
-    grad.addColorStop(1, 'rgba(0, 15, 45, 0.28)');     // 地平線付近の奥行きシャドウ
+      // ドーム内壁の球面グラデーション（画面上部の天頂から地平線方向への光の広がり）
+      var grad = ctx.createRadialGradient(
+        c.width * 0.5, c.height * 0.5 - zenithOffsetY, skyRadius * 0.05,
+        c.width * 0.5, c.height * 0.5 - zenithOffsetY * 0.3, skyRadius
+      );
+      grad.addColorStop(0, 'rgba(0, 20, 60, 0.25)');       // 天頂付近の深い空色
+      grad.addColorStop(0.55, 'rgba(255, 255, 255, 0.0)'); // 中間は指定色そのまま
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0.35)');   // 地平線付近の霞んだ明るい空気感
 
-    ctx.fillStyle = grad;
-    ctx.fill();
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, c.width, c.height);
 
-    // 4. ドームが地面と接する外周ライン（地平線リング）をうっすら描画して接地感を出す
-    ctx.beginPath();
-    ctx.ellipse(centerS.x, centerS.y, rx, ry, 0, Math.PI, Math.PI * 2, false);
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
+    } else {
+      // 【マップを囲うサイズ（外からドームの丸みが見えるモード）】
+      var radiusW = Math.hypot(this.width, this.height) * 0.85;
+      var rx = radiusW * cam.size;
+      var ry = rx * cam.pitch;
+      var domeHeight = rx * Math.sqrt(Math.max(0.05, 1 - cam.pitch * cam.pitch));
+
+      ctx.beginPath();
+      ctx.ellipse(centerS.x, centerS.y, rx, ry, 0, 0, Math.PI, false);
+      ctx.ellipse(centerS.x, centerS.y, rx, domeHeight, 0, Math.PI, 0, false);
+      ctx.closePath();
+
+      ctx.fillStyle = this.skyDomeColor;
+      ctx.fill();
+
+      var domeGrad = ctx.createRadialGradient(
+        centerS.x, centerS.y - domeHeight * 0.45, rx * 0.05,
+        centerS.x, centerS.y - domeHeight * 0.15, Math.max(rx, domeHeight) * 1.05
+      );
+      domeGrad.addColorStop(0, 'rgba(255, 255, 255, 0.22)');
+      domeGrad.addColorStop(0.6, 'rgba(255, 255, 255, 0.0)');
+      domeGrad.addColorStop(1, 'rgba(0, 15, 45, 0.28)');
+
+      ctx.fillStyle = domeGrad;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(centerS.x, centerS.y, rx, ry, 0, Math.PI, Math.PI * 2, false);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+    }
 
     ctx.restore();
   }
