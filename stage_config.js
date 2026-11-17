@@ -15,8 +15,8 @@ p.ty = 8;
 // 2. マップの広さ（横マス数, 縦マス数, 奥壁のテクスチャ画像, 奥壁の高さ(96), スカイドーム表示フラグ(boolean)）
 var gameMap = new FieldMap(20, 20, 'green.png', 96, true)
   .setFloorColorA('#5c9449')
-  .setFloorColorB('#528740');
-
+  .setFloorColorB('#528740')
+  .setSkyDomeEncloseCamera(true);
 gameMap.sayRange = 5; // 5マスまで聞こえるように変更（0にするとマップ全域に届く）
 
 // スカイドームのデフォルト色は空の青 #4aa8ff
