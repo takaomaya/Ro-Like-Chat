@@ -16,7 +16,7 @@ p.ty = 8;
 var gameMap = new FieldMap(20, 20, 'green.png', 96)
   .setFloorColorA('#5c9449')
   .setFloorColorB('#528740');
-gameMap.sayRange = 8; // 8マスまで聞こえるように変更（0にするとマップ全域に届く）
+gameMap.sayRange = 5; // 5マスまで聞こえるように変更（0にするとマップ全域に届く）
 
 
 // 3. 障害物・LongWallの配置（メソッド呼び出しで動的に追加可能）

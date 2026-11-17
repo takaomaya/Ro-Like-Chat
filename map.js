@@ -1,5 +1,4 @@
 class FieldMap {
- class FieldMap {
   // wallTexSrc: 奥壁に貼る64x64テクスチャ画像名（例: 'red.png'）、wallHeight: 壁の高さ
   constructor(width, height, wallTexSrc, wallHeight) {
     this.width = width;
