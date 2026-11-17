@@ -1,38 +1,37 @@
 class FieldMap {
-  // wallTexSrc: 奥壁に貼る64x64テクスチャ画像名、wallHeight: 壁の高さ、showSkyDome: スカイドーム表示フラグ
-  constructor(width, height, wallTexSrc, wallHeight, showSkyDome) {
+  // wallTexSrc: 奥壁画像, wallHeight: 壁の高さ, showSkyDome: スカイドーム表示, extendFloorToHorizon: 床を地平線まで伸ばすか
+  constructor(width, height, wallTexSrc, wallHeight, showSkyDome, extendFloorToHorizon) {
     this.width = width;
     this.height = height;
-    this.color1 = '#5c9449'; // 床色Aのデフォルト値
-    this.color2 = '#528740'; // 床色Bのデフォルト値
+    this.color1 = '#5c9449';
+    this.color2 = '#528740';
     this.wallTex = wallTexSrc ? getObstacleTexture(wallTexSrc) : null;
-    this.wallHeight = wallHeight || 96; // 標準ズーム時の高さ(px)
+    this.wallHeight = wallHeight || 96;
     this.isMaintenance = false;
 
     // スカイドーム設定
     this.showSkyDome = (showSkyDome !== undefined) ? !!showSkyDome : true;
-    this.skyDomeColor = '#4aa8ff'; // 初期値：空の色の青
+    this.skyDomeColor = '#4aa8ff';
+    this.encloseCamera = true;
+
+    // 地平線までの床拡張設定
+    this.extendFloorToHorizon = !!extendFloorToHorizon;
+    this.outerFloorColor = '#4b7c3b'; // マップ境界から先の単色（初期値：落ち着いた草色）
 
     this.sayRange = 5;
-
-    // システム周知メッセージ用プロパティ
     this.sysMsg = '';
     this.sysTime = 0;
   }
 
   // 床色Aを変更するメソッド
   setFloorColorA(color) {
-    if (color) {
-      this.color1 = color;
-    }
+    if (color) this.color1 = color;
     return this;
   }
 
   // 床色Bを変更するメソッド
   setFloorColorB(color) {
-    if (color) {
-      this.color2 = color;
-    }
+    if (color) this.color2 = color;
     return this;
   }
 
@@ -44,16 +43,25 @@ class FieldMap {
 
   // スカイドームの色を指定するメソッド
   setSkyDomeColor(color) {
-    if (color) {
-      this.skyDomeColor = color;
-    }
+    if (color) this.skyDomeColor = color;
     return this;
   }
- 
-   // スカイドームを「カメラを内包する巨大サイズ」にするか切り替えるメソッド
-  // true: カメラを内包（視界全体が空になる） / false: マップ外周を囲うドームサイズ
+
+  // スカイドームを「カメラを内包する巨大サイズ」にするか切り替えるメソッド
   setSkyDomeEncloseCamera(enclose) {
     this.encloseCamera = !!enclose;
+    return this;
+  }
+
+  // 床を地平線まで伸ばすかどうかを切り替えるメソッド
+  setExtendFloorToHorizon(extend) {
+    this.extendFloorToHorizon = !!extend;
+    return this;
+  }
+
+  // マップ境界から先の床色（単色）を指定するメソッド
+  setOuterFloorColor(color) {
+    if (color) this.outerFloorColor = color;
     return this;
   }
  
@@ -320,10 +328,42 @@ class FieldMap {
 
     ctx.restore();
   }
+
+  // マップ境界から地平線（十分遠い有限距離）まで単色の床を描画する
+  drawOuterFloor() {
+    if (!this.extendFloorToHorizon) return;
+
+    // 地平線とみなせる十分遠い距離（マップの周囲250マス先まで）
+    var far = 250;
+    var p0 = toS(-far, -far);
+    var p1 = toS(this.width + far, -far);
+    var p2 = toS(this.width + far, this.height + far);
+    var p3 = toS(-far, this.height + far);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.lineTo(p3.x, p3.y);
+    ctx.closePath();
+
+    ctx.fillStyle = this.outerFloorColor;
+    ctx.fill();
+    ctx.restore();
+  }
+
   draw() {
+    // 1. スカイドーム（空）を描画
     this.drawSkyDome();
+
+    // 2. マップ境界から地平線までの単色の床を描画（空の手前に大地が重なる）
+    this.drawOuterFloor();
+
+    // 3. マップ外周の奥壁を描画
     this.drawBackWalls();
 
+    // 4. マップ内の市松模様の床タイルを描画
     for (var x = 0; x < this.width; x++) {
       for (var y = 0; y < this.height; y++) {
         var p0 = toS(x, y), p1 = toS(x + 1, y), p2 = toS(x + 1, y + 1), p3 = toS(x, y + 1);
