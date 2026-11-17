@@ -1,6 +1,6 @@
 class FieldMap {
-  // wallTexSrc: 奥壁に貼る64x64テクスチャ画像名（例: 'red.png'）、wallHeight: 壁の高さ
-  constructor(width, height, wallTexSrc, wallHeight) {
+  // wallTexSrc: 奥壁に貼る64x64テクスチャ画像名、wallHeight: 壁の高さ、showSkyDome: スカイドーム表示フラグ
+  constructor(width, height, wallTexSrc, wallHeight, showSkyDome) {
     this.width = width;
     this.height = height;
     this.color1 = '#5c9449'; // 床色Aのデフォルト値
@@ -8,6 +8,10 @@ class FieldMap {
     this.wallTex = wallTexSrc ? getObstacleTexture(wallTexSrc) : null;
     this.wallHeight = wallHeight || 96; // 標準ズーム時の高さ(px)
     this.isMaintenance = false;
+
+    // スカイドーム設定
+    this.showSkyDome = (showSkyDome !== undefined) ? !!showSkyDome : true;
+    this.skyDomeColor = '#4aa8ff'; // 初期値：空の色の青
 
     this.sayRange = 5;
 
@@ -28,6 +32,20 @@ class FieldMap {
   setFloorColorB(color) {
     if (color) {
       this.color2 = color;
+    }
+    return this;
+  }
+
+  // スカイドームの表示・非表示を切り替えるメソッド
+  setSkyDomeVisible(visible) {
+    this.showSkyDome = !!visible;
+    return this;
+  }
+
+  // スカイドームの色を指定するメソッド
+  setSkyDomeColor(color) {
+    if (color) {
+      this.skyDomeColor = color;
     }
     return this;
   }
@@ -228,7 +246,87 @@ class FieldMap {
     });
   }
 
+  // スカイドーム（マップ全体を覆う球状の天蓋の内壁）を描画する
+  drawSkyDome() {
+    if (!this.showSkyDome) return;
+
+    var sc = cam.size / 48;
+    // マップ中心を基準に、マップ全体を囲う半径を自動計算（対角線の半分＋余白）
+    var cx = this.width / 2;
+    var cy = this.height / 2;
+    var radiusW = Math.hypot(this.width, this.height) * 0.55;
+    // 縦方向の高さ（標準ズーム時のピクセル高さ）
+    var domeHeight = radiusW * 48 * 0.85;
+
+    // 3D空間上のドーム頂点を2Dスクリーン座標に変換する内部関数
+    function projectDomePt(wx, wy, wz) {
+      var s = toS(wx, wy);
+      // 見下ろし角度(pitch)に応じて高さの見え方を自然に補正
+      var heightScale = Math.cos(cam.pitch * 0.65);
+      return {
+        x: s.x,
+        y: s.y - wz * sc * heightScale
+      };
+    }
+
+    var rings = 10;    // 緯度分割数（天頂〜地平線）
+    var segments = 32; // 経度分割数（ぐるり1周）
+
+    ctx.save();
+    for (var r = 0; r < rings; r++) {
+      var phi0 = (r / rings) * (Math.PI / 2);       // 上側の緯度角 (0 = 天頂)
+      var phi1 = ((r + 1) / rings) * (Math.PI / 2); // 下側の緯度角 (PI/2 = 地面)
+
+      var rad0 = Math.sin(phi0) * radiusW;
+      var rad1 = Math.sin(phi1) * radiusW;
+      var z0 = Math.cos(phi0) * domeHeight;
+      var z1 = Math.cos(phi1) * domeHeight;
+
+      // 天頂に向かって少し明るくなる空のグラデーション表現
+      var shadeAlpha = (r / rings) * 0.22;
+
+      for (var s = 0; s < segments; s++) {
+        var theta0 = (s / segments) * Math.PI * 2;
+        var theta1 = ((s + 1) / segments) * Math.PI * 2;
+        var midTheta = (theta0 + theta1) * 0.5;
+
+        // カメラから見て「奥側」にある面だけを描画（手前側は透明でカメラを遮らない）
+        var dirX = Math.cos(midTheta);
+        var dirY = Math.sin(midTheta);
+        var screenDepthY = dirX * Math.sin(cam.ang) + dirY * Math.cos(cam.ang);
+        if (screenDepthY > 0.15) continue;
+
+        var p00 = projectDomePt(cx + Math.cos(theta0) * rad0, cy + Math.sin(theta0) * rad0, z0);
+        var p10 = projectDomePt(cx + Math.cos(theta1) * rad0, cy + Math.sin(theta1) * rad0, z0);
+        var p11 = projectDomePt(cx + Math.cos(theta1) * rad1, cy + Math.sin(theta1) * rad1, z1);
+        var p01 = projectDomePt(cx + Math.cos(theta0) * rad1, cy + Math.sin(theta0) * rad1, z1);
+
+        // ベースとなる空色を描画（ポリゴン同士の隙間を防ぐため同色で極細ストロークも引く）
+        ctx.beginPath();
+        ctx.moveTo(p00.x, p00.y);
+        ctx.lineTo(p10.x, p10.y);
+        ctx.lineTo(p11.x, p11.y);
+        ctx.lineTo(p01.x, p01.y);
+        ctx.closePath();
+
+        ctx.fillStyle = this.skyDomeColor;
+        ctx.fill();
+        ctx.strokeStyle = this.skyDomeColor;
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+
+        // 球体の丸み（立体感）を出すための薄い陰影オーバーレイ
+        if (shadeAlpha > 0.01) {
+          ctx.fillStyle = 'rgba(0, 15, 40, ' + shadeAlpha.toFixed(3) + ')';
+          ctx.fill();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
   draw() {
+    this.drawSkyDome();
     this.drawBackWalls();
 
     for (var x = 0; x < this.width; x++) {

@@ -12,11 +12,24 @@ p.y = 8;
 p.tx = 8;
 p.ty = 8;
 
-// 2. マップの広さ（横マス数, 縦マス数, タイル色1, タイル色2, 奥壁のテクスチャ画像, 奥壁の高さ(96)）
-var gameMap = new FieldMap(20, 20, 'green.png', 96)
+// 2. マップの広さ（横マス数, 縦マス数, 奥壁のテクスチャ画像, 奥壁の高さ(96), スカイドーム表示フラグ(boolean)）
+var gameMap = new FieldMap(20, 20, 'green.png', 96, true)
   .setFloorColorA('#5c9449')
   .setFloorColorB('#528740');
+
 gameMap.sayRange = 5; // 5マスまで聞こえるように変更（0にするとマップ全域に届く）
+
+// スカイドームのデフォルト色は空の青 #4aa8ff
+// 夕方・夜などに空の色を変えたい場合：
+// gameMap.setSkyDomeColor('#f97316'); // 夕焼け色
+// gameMap.setSkyDomeColor('#1e1b4b'); // 夜空色
+
+// 表示・非表示を切り替えたい場合：
+// gameMap.setSkyDomeVisible(false);
+
+
+
+
 
 
 // 3. 障害物・LongWallの配置（メソッド呼び出しで動的に追加可能）
