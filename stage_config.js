@@ -21,7 +21,8 @@ gameMap.sayRange = 5; // 5マスまで聞こえるように変更（0にする�
 
 // スカイドームのデフォルト色は空の青 #4aa8ff
 // 夕方・夜などに空の色を変えたい場合：
-// gameMap.setSkyDomeColor('#f97316'); // 夕焼け色
+// gameMap.setSkyDomeColor('#4aa8ff'); // 空の青
+gameMap.setSkyDomeColor('#f97316'); // 夕焼け色
 // gameMap.setSkyDomeColor('#1e1b4b'); // 夜空色
 
 // 表示・非表示を切り替えたい場合：
