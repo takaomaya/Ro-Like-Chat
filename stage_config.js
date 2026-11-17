@@ -16,7 +16,7 @@ p.ty = 8;
 var gameMap = new FieldMap(20, 20, 'green.png', 96, true, true)
   .setFloorColorA('#5c9449')
   .setFloorColorB('#528740')
-  .setOuterFloorColor('#4b7c3b'); // マップ境界から先の色を単色で指定
+  .setOuterFloorColor('#4b7c3b') // マップ境界から先の色を単色で指定
   .setSkyDomeEncloseCamera(true);
 gameMap.sayRange = 5; // 5マスまで聞こえるように変更（0にするとマップ全域に届く）
 
