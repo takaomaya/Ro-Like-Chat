@@ -13,7 +13,11 @@ p.tx = 8;
 p.ty = 8;
 
 // 2. マップの広さ（横マス数, 縦マス数, タイル色1, タイル色2, 奥壁のテクスチャ画像, 奥壁の高さ(96)）
-var gameMap = new FieldMap(20, 20, '#5c9449', '#528740', 'green.png', 96);
+var gameMap = new FieldMap(20, 20, 'green.png', 96)
+  .setFloorColorA('#5c9449')
+  .setFloorColorB('#528740');
+gameMap.sayRange = 8; // 8マスまで聞こえるように変更（0にするとマップ全域に届く）
+
 
 // 3. 障害物・LongWallの配置（メソッド呼び出しで動的に追加可能）
 // 第1引数に固有のID（キー）を指定して登録（obstacles.delete('wall_1') で個別削除可能）

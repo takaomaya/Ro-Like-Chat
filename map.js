@@ -1,21 +1,38 @@
 class FieldMap {
+ class FieldMap {
   // wallTexSrc: 奥壁に貼る64x64テクスチャ画像名（例: 'red.png'）、wallHeight: 壁の高さ
-  constructor(width, height, color1, color2, wallTexSrc, wallHeight) {
+  constructor(width, height, wallTexSrc, wallHeight) {
     this.width = width;
     this.height = height;
-    this.color1 = color1 || '#5c9449';
-    this.color2 = color2 || '#528740';
+    this.color1 = '#5c9449'; // 床色Aのデフォルト値
+    this.color2 = '#528740'; // 床色Bのデフォルト値
     this.wallTex = wallTexSrc ? getObstacleTexture(wallTexSrc) : null;
     this.wallHeight = wallHeight || 96; // 標準ズーム時の高さ(px)
     this.isMaintenance = false;
 
-    this.sayRange = 5; // ← ★この1行を追加
+    this.sayRange = 5;
 
     // システム周知メッセージ用プロパティ
     this.sysMsg = '';
     this.sysTime = 0;
   }
 
+  // 床色Aを変更するメソッド
+  setFloorColorA(color) {
+    if (color) {
+      this.color1 = color;
+    }
+    return this;
+  }
+
+  // 床色Bを変更するメソッド
+  setFloorColorB(color) {
+    if (color) {
+      this.color2 = color;
+    }
+    return this;
+  }
+ 
   // 管理者用システム周知メソッド（時間経過で自動消去）
   // 例: gameMap.say('イベント終了まであと5分です！');
   // 例: gameMap.say('まもなくメンテナンスに入ります', 600, '運営');
