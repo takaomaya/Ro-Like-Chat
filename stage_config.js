@@ -12,31 +12,11 @@ p.y = 8;
 p.tx = 8;
 p.ty = 8;
 
-// 2. マップの広さ（横マス数, 縦マス数, 奥壁のテクスチャ画像, 奥壁の高さ(96), スカイドーム表示フラグ(boolean), 床を地平線まで伸ばすフラグ(boolean)）
-var gameMap = new FieldMap(20, 20, 'green.png', 96, true, true)
+// 2. マップの広さ（横マス数, 縦マス数, 奥壁のテクスチャ画像, 奥壁の高さ(96)）
+var gameMap = new FieldMap(20, 20, 'green.png', 96)
   .setFloorColorA('#5c9449')
-  .setFloorColorB('#528740')
-  .setOuterFloorColor('#4b7c3b') // マップ境界から先の色を単色で指定
-  .setSkyDomeEncloseCamera(true);
+  .setFloorColorB('#528740');
 gameMap.sayRange = 5; // 5マスまで聞こえるように変更（0にするとマップ全域に届く）
-
-// 地平線までを描画するかどうか
-// gameMap.setOuterFloorColor('#e6c27a');	// 砂漠の真ん中にあるオアシス風にする場合：
-// gameMap.setOuterFloorColor('#1d4ed8');	// 海に浮かぶ島風にする場合：
-// 後からON/OFFを切り替える場合：
-// gameMap.setExtendFloorToHorizon(false);
-
-// スカイドームのは空の青 #4aa8ff
-// 夕方・夜などに空の色を変えたい場合：
-// gameMap.setSkyDomeColor('#4aa8ff'); // 空の青(デフォルト色)
-// gameMap.setSkyDomeColor('#f97316'); // 夕焼け色
-// gameMap.setSkyDomeColor('#1e1b4b'); // 夜空色
-
-// 表示・非表示を切り替えたい場合：
-// gameMap.setSkyDomeVisible(false);
-
-
-
 
 
 
