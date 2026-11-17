@@ -261,34 +261,39 @@ class FieldMap {
   }
 
   // スカイドーム（球状の天蓋の内壁）を描画する
+  // カメラの見下ろし角度(cam.pitch)に応じた「地平線の画面Y座標」を計算する補助メソッド
+  getHorizonY() {
+    // cam.pitch は 0.25（水平に近い）〜 0.95（真上に近い）
+    // pitch が小さい（水平に近い）ほど画面中央付近に地平線が見え、
+    // pitch が大きい（見下ろす）ほど地平線は画面上端の外側へ移動する
+    var t = (cam.pitch - 0.25) / (0.95 - 0.25); // 0.0 〜 1.0
+    return c.height * (0.38 - t * 0.55);
+  }
+
+  // スカイドーム（球状の天蓋の内壁）を描画する
   drawSkyDome() {
     if (!this.showSkyDome) return;
 
     var cx = this.width / 2;
     var cy = this.height / 2;
     var centerS = toS(cx, cy);
+    var horizonY = this.getHorizonY();
 
     ctx.save();
 
     if (this.encloseCamera) {
       // 【カメラを内包するサイズ】
-      // カメラ自身がドームの完全に内側にいるため、外枠の輪郭は画面外になり視界全体が空に包まれる
-      var screenDiag = Math.hypot(c.width, c.height);
-      var skyRadius = screenDiag * 1.4;
-      // 見下ろし角度(pitch)に応じて天頂の位置を上下にシフト
-      var zenithOffsetY = skyRadius * 0.45 * (1 - cam.pitch * 0.6);
-
+      // 画面全体を空で塗りつぶし、地平線に向かって空気が霞むグラデーションをかける
       ctx.fillStyle = this.skyDomeColor;
       ctx.fillRect(0, 0, c.width, c.height);
 
-      // ドーム内壁の球面グラデーション（画面上部の天頂から地平線方向への光の広がり）
-      var grad = ctx.createRadialGradient(
-        c.width * 0.5, c.height * 0.5 - zenithOffsetY, skyRadius * 0.05,
-        c.width * 0.5, c.height * 0.5 - zenithOffsetY * 0.3, skyRadius
-      );
-      grad.addColorStop(0, 'rgba(0, 20, 60, 0.25)');       // 天頂付近の深い空色
-      grad.addColorStop(0.55, 'rgba(255, 255, 255, 0.0)'); // 中間は指定色そのまま
-      grad.addColorStop(1, 'rgba(255, 255, 255, 0.35)');   // 地平線付近の霞んだ明るい空気感
+      var skyTopY = Math.min(0, horizonY - c.height * 0.6);
+      var skyBottomY = Math.max(c.height * 0.45, horizonY);
+
+      var grad = ctx.createLinearGradient(0, skyTopY, 0, skyBottomY);
+      grad.addColorStop(0, 'rgba(0, 20, 65, 0.28)');       // 天頂付近の深い空色
+      grad.addColorStop(0.65, 'rgba(255, 255, 255, 0.0)'); // 中間は指定した空色そのまま
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0.42)');   // 地平線付近の明るく霞んだ空気感
 
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, c.width, c.height);
@@ -333,14 +338,21 @@ class FieldMap {
   drawOuterFloor() {
     if (!this.extendFloorToHorizon) return;
 
-    // 地平線とみなせる十分遠い距離（マップの周囲250マス先まで）
-    var far = 250;
+    var horizonY = this.getHorizonY();
+
+    // 地平線ライン（horizonY）より下側だけをクリップして、十分遠くまでの床を単色で塗る
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, horizonY, c.width, c.height - horizonY);
+    ctx.clip();
+
+    // マップの周囲を囲む広大な床ポリゴン
+    var far = 120;
     var p0 = toS(-far, -far);
     var p1 = toS(this.width + far, -far);
     var p2 = toS(this.width + far, this.height + far);
     var p3 = toS(-far, this.height + far);
 
-    ctx.save();
     ctx.beginPath();
     ctx.moveTo(p0.x, p0.y);
     ctx.lineTo(p1.x, p1.y);
@@ -350,6 +362,15 @@ class FieldMap {
 
     ctx.fillStyle = this.outerFloorColor;
     ctx.fill();
+
+    // 地平線付近にうっすら空気遠近法（遠い地面ほど空の色に溶け込む霞み）をかける
+    var fogHeight = Math.max(40, c.height * 0.14);
+    var fogGrad = ctx.createLinearGradient(0, horizonY, 0, horizonY + fogHeight);
+    fogGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+    fogGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
+    ctx.fillStyle = fogGrad;
+    ctx.fillRect(0, horizonY, c.width, fogHeight);
+
     ctx.restore();
   }
 
