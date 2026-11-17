@@ -35,6 +35,16 @@ class Mob {
   }
 
   say(text, duration) {
+    var range = (typeof gameMap !== 'undefined' && gameMap.sayRange !== undefined) ? gameMap.sayRange : 5;
+    var dist = (typeof p !== 'undefined') ? Math.hypot(this.x - p.x, this.y - p.y) : 0;
+
+    // 範囲が0より大きく、プレイヤーとの距離が範囲を超えている場合
+    if (range > 0 && dist > range) {
+      this.msg = '……';
+      this.mTime = duration || 240;
+      return; // ログには残さず終了
+    }
+
     this.msg = this.name + ' : ' + text;
     this.mTime = duration || 240;
     if (typeof addChatLog === 'function') {

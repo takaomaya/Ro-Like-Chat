@@ -9,6 +9,8 @@ class FieldMap {
     this.wallHeight = wallHeight || 96; // 標準ズーム時の高さ(px)
     this.isMaintenance = false;
 
+    this.sayRange = 5; // ← ★この1行を追加
+
     // システム周知メッセージ用プロパティ
     this.sysMsg = '';
     this.sysTime = 0;
