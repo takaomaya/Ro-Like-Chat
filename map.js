@@ -246,85 +246,63 @@ class FieldMap {
     });
   }
 
-  // スカイドーム（マップ全体を覆う球状の天蓋の内壁）を描画する
+  // スカイドーム（マップ全体を覆う滑らかな球状の天蓋）を描画する
   drawSkyDome() {
     if (!this.showSkyDome) return;
 
     var sc = cam.size / 48;
-    // マップ中心を基準に、マップ全体を囲う半径を自動計算（対角線の半分＋余白）
+    // マップ中心を基準に、マップ全体を囲う半径を計算（対角線の半分＋余白）
     var cx = this.width / 2;
     var cy = this.height / 2;
-    var radiusW = Math.hypot(this.width, this.height) * 0.55;
-    // 縦方向の高さ（標準ズーム時のピクセル高さ）
-    var domeHeight = radiusW * 48 * 0.85;
+    var radiusW = Math.hypot(this.width, this.height) * 0.56;
 
-    // 3D空間上のドーム頂点を2Dスクリーン座標に変換する内部関数
-    function projectDomePt(wx, wy, wz) {
-      var s = toS(wx, wy);
-      // 見下ろし角度(pitch)に応じて高さの見え方を自然に補正
-      var heightScale = Math.cos(cam.pitch * 0.65);
-      return {
-        x: s.x,
-        y: s.y - wz * sc * heightScale
-      };
-    }
+    // マップ中心のスクリーン座標
+    var centerS = toS(cx, cy);
 
-    var rings = 10;    // 緯度分割数（天頂〜地平線）
-    var segments = 32; // 経度分割数（ぐるり1周）
+    // 地面に接するドーム底面の楕円半径（X方向・Y方向）
+    var rx = radiusW * cam.size;
+    var ry = rx * cam.pitch;
+
+    // ドームの天頂（高さ）のスクリーン上の見かけの高さ
+    // 真横(pitch=0)で真円(rx)、真上(pitch=1)で高さ0になる3D球体の正射影公式
+    var domeHeight = rx * Math.sqrt(Math.max(0.05, 1 - cam.pitch * cam.pitch));
 
     ctx.save();
-    for (var r = 0; r < rings; r++) {
-      var phi0 = (r / rings) * (Math.PI / 2);       // 上側の緯度角 (0 = 天頂)
-      var phi1 = ((r + 1) / rings) * (Math.PI / 2); // 下側の緯度角 (PI/2 = 地面)
 
-      var rad0 = Math.sin(phi0) * radiusW;
-      var rad1 = Math.sin(phi1) * radiusW;
-      var z0 = Math.cos(phi0) * domeHeight;
-      var z1 = Math.cos(phi1) * domeHeight;
+    // 1. 球状ドーム全体のシルエットパスを作成
+    // （地面の奥側半楕円 ＋ 上空のドーム円弧 ＋ 地面の手前側半楕円で閉じた完全な球状シルエット）
+    ctx.beginPath();
+    // 底面の右端(0)から手前を通って左端(PI)へ
+    ctx.ellipse(centerS.x, centerS.y, rx, ry, 0, 0, Math.PI, false);
+    // 左端から天頂を通って右端へ（3D球体のシルエット曲線）
+    ctx.ellipse(centerS.x, centerS.y, rx, domeHeight, 0, Math.PI, 0, false);
+    ctx.closePath();
 
-      // 天頂に向かって少し明るくなる空のグラデーション表現
-      var shadeAlpha = (r / rings) * 0.22;
+    // 2. ベースとなる空色で塗りつぶし
+    ctx.fillStyle = this.skyDomeColor;
+    ctx.fill();
 
-      for (var s = 0; s < segments; s++) {
-        var theta0 = (s / segments) * Math.PI * 2;
-        var theta1 = ((s + 1) / segments) * Math.PI * 2;
-        var midTheta = (theta0 + theta1) * 0.5;
+    // 3. 球体の丸み（天頂が明るく、地平線に向かって深みが出る立体感）を滑らかなグラデーションで表現
+    var grad = ctx.createRadialGradient(
+      centerS.x, centerS.y - domeHeight * 0.45, rx * 0.05,
+      centerS.x, centerS.y - domeHeight * 0.15, Math.max(rx, domeHeight) * 1.05
+    );
+    grad.addColorStop(0, 'rgba(255, 255, 255, 0.22)'); // 天頂付近のハイライト
+    grad.addColorStop(0.6, 'rgba(255, 255, 255, 0.0)'); // 中間は指定色そのまま
+    grad.addColorStop(1, 'rgba(0, 15, 45, 0.28)');     // 地平線付近の奥行きシャドウ
 
-        // カメラから見て「奥側」にある面だけを描画（手前側は透明でカメラを遮らない）
-        var dirX = Math.cos(midTheta);
-        var dirY = Math.sin(midTheta);
-        var screenDepthY = dirX * Math.sin(cam.ang) + dirY * Math.cos(cam.ang);
-        if (screenDepthY > 0.15) continue;
+    ctx.fillStyle = grad;
+    ctx.fill();
 
-        var p00 = projectDomePt(cx + Math.cos(theta0) * rad0, cy + Math.sin(theta0) * rad0, z0);
-        var p10 = projectDomePt(cx + Math.cos(theta1) * rad0, cy + Math.sin(theta1) * rad0, z0);
-        var p11 = projectDomePt(cx + Math.cos(theta1) * rad1, cy + Math.sin(theta1) * rad1, z1);
-        var p01 = projectDomePt(cx + Math.cos(theta0) * rad1, cy + Math.sin(theta0) * rad1, z1);
+    // 4. ドームが地面と接する外周ライン（地平線リング）をうっすら描画して接地感を出す
+    ctx.beginPath();
+    ctx.ellipse(centerS.x, centerS.y, rx, ry, 0, Math.PI, Math.PI * 2, false);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
 
-        // ベースとなる空色を描画（ポリゴン同士の隙間を防ぐため同色で極細ストロークも引く）
-        ctx.beginPath();
-        ctx.moveTo(p00.x, p00.y);
-        ctx.lineTo(p10.x, p10.y);
-        ctx.lineTo(p11.x, p11.y);
-        ctx.lineTo(p01.x, p01.y);
-        ctx.closePath();
-
-        ctx.fillStyle = this.skyDomeColor;
-        ctx.fill();
-        ctx.strokeStyle = this.skyDomeColor;
-        ctx.lineWidth = 0.8;
-        ctx.stroke();
-
-        // 球体の丸み（立体感）を出すための薄い陰影オーバーレイ
-        if (shadeAlpha > 0.01) {
-          ctx.fillStyle = 'rgba(0, 15, 40, ' + shadeAlpha.toFixed(3) + ')';
-          ctx.fill();
-        }
-      }
-    }
     ctx.restore();
   }
-
   draw() {
     this.drawSkyDome();
     this.drawBackWalls();
